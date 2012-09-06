@@ -1,8 +1,8 @@
 import unittest
-from sasi_runner.util.sa.tests.db_testcase import DBTestCase
-from sasi_runner.util.sasi_data.ingest.sasi_ingestor import SASI_Ingestor
-from sasi_runner.util.sasi_data.tests.generate_test_data import generate_data
-from sasi_runner.util.sasi_data.dao.sasi_sa_dao import SASI_SqlAlchemyDAO
+from sasi_data.util.sa.tests.db_testcase import DBTestCase
+from sasi_data.ingestors.sasi_ingestor import SASI_Ingestor
+from sasi_data.tests.generate_test_data import generate_data
+from sasi_data.dao.sasi_sa_dao import SASI_SqlAlchemyDAO
 import shutil
 
 

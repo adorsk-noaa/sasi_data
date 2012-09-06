@@ -4,7 +4,7 @@ import csv
 import fiona
 import shapely.geometry
 import shapely.wkb
-import sasi_runner.util.gis as gis_util
+import sasi_data.util.gis as gis_util
 
 
 def generate_data(data_dir="", time_start=0, time_end=10, time_step=1):

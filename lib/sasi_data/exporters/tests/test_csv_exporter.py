@@ -22,11 +22,7 @@ class CSV_Ingestor_TestCase(unittest.TestCase):
                 'target': 'attr1_t',
                 'processor': lambda value: int(value) * 10
             },
-
-            {
-                'source': 'attr2', 
-                'target': 'attr2_t',
-            },
+            'attr2',
         ]
 
         csv_file = StringIO()

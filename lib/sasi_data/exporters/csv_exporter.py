@@ -9,6 +9,11 @@ class CSV_Exporter(object):
             csv_file = open(csv_file, 'wb')
         self.writer = csv.writer(csv_file)
 
+        for i in range(len(self.mappings)):
+            if isinstance(self.mappings[i], str):
+                self.mappings[i] = {'source': self.mappings[i], 'target':
+                                    self.mappings[i]}
+
     def export(self):
         fields = [mapping['target'] for mapping in self.mappings]
         self.writer.writerow(fields)

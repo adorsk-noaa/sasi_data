@@ -174,9 +174,9 @@ def generate_data(data_dir="", time_start=0, time_end=10, time_step=1):
         'data': fishing_efforts_data
     }
 
-    sections['maps'] = {
-        'id': 'maps',
-        'type': 'maps',
+    sections['map'] = {
+        'id': 'map',
+        'type': 'map',
         'map_parameters': {
             'max_extent': '[-70, 40, -60, 50]',
             'graticule_intervals': '[2]',
@@ -191,8 +191,8 @@ def generate_data(data_dir="", time_start=0, time_end=10, time_step=1):
             generate_shp_section(data_dir, s)
         elif s['type'] == 'fishing_efforts':
             generate_fishing_efforts_section(data_dir, s)
-        elif s['type'] == 'maps':
-            generate_maps_section(data_dir, s)
+        elif s['type'] == 'map':
+            generate_map_section(data_dir, s)
 
     return data_dir
 
@@ -230,10 +230,78 @@ def generate_fishing_efforts_section(data_dir, section):
     w.writerow(['model_type'])
     w.writerow([section['model_type']])
 
-def generate_maps_section(data_dir, section):
+def generate_map_section(data_dir, section):
     section_data_dir = setup_section_dirs(data_dir, section)
     section_dir = os.path.join(data_dir, section['id'])
+
+    # Write map parameters file.
     w = csv.writer(open(os.path.join(section_dir, 'map_parameters.csv'),'w'))
     map_parameters = section['map_parameters']
     w.writerow(map_parameters.keys())
     w.writerow([map_parameters[k] for k in map_parameters.keys()])
+
+    # Generate map layers.
+    map_layers_dir = os.path.join(section_data_dir, "map_layers")
+    os.mkdir(map_layers_dir)
+    for i in range(3):
+        layer_id = "layer%s" % i
+        layer_dir = os.path.join(map_layers_dir, layer_id)
+        os.mkdir(layer_dir)
+        shpfile = os.path.join(layer_dir, "%s.shp" % layer_id)
+        c = fiona.collection(shpfile, "w", driver='ESRI Shapefile', 
+                             crs={'no_defs': True, 'ellps': 'WGS84', 
+                                  'datum': 'WGS84', 'proj': 'longlat'},
+                             schema={
+                                 'geometry': 'MultiPolygon',
+                                 'properties': {
+                                     'INT_ATTR': 'int',
+                                     'STR_ATTR': 'str',
+                                 }
+                             },
+                            )
+        for j in range(3):
+            coords = [[j, j], [j,j+1], [j+1, j+1], [j+1,j], [j,j]]
+            record = {
+                'id': j,
+                'geometry': {
+                    'type': 'MultiPolygon',
+                    'coordinates': [[coords]]
+                },
+                'properties': {
+                    'INT_ATTR': j,
+                    'STR_ATTR': "str_%s" % i
+                }
+            }
+            c.write(record)
+        c.close()
+
+        # Write SLD.
+        sld_file = os.path.join(layer_dir, "%s.sld" % layer_id)
+        open(sld_file, "w").write(get_sld(layer_id))
+
+def get_sld(layer_id):
+    return """
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<StyledLayerDescriptor version="1.0.0" 
+    xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd" 
+    xmlns="http://www.opengis.net/sld" 
+    xmlns:ogc="http://www.opengis.net/ogc" 
+    xmlns:xlink="http://www.w3.org/1999/xlink" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NamedLayer>
+    <Name>%s</Name>
+    <UserStyle>
+      <Title>Simple polygon</Title>
+      <FeatureTypeStyle>
+        <Rule>
+          <PolygonSymbolizer>
+            <Fill>
+              <CssParameter name="fill">#800080</CssParameter>
+            </Fill>
+          </PolygonSymbolizer>
+        </Rule>
+      </FeatureTypeStyle>
+    </UserStyle>
+  </NamedLayer>
+</StyledLayerDescriptor>
+""" % layer_id

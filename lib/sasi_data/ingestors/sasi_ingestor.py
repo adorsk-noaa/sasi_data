@@ -128,8 +128,8 @@ class SASI_Ingestor(object):
             ingestor.ingest()
 
         # Maps.
-        maps_dir = os.path.join(data_dir, 'maps')
-        map_parameters_file = os.path.join(maps_dir, 'map_parameters.csv')
+        map_dir = os.path.join(data_dir, 'map')
+        map_parameters_file = os.path.join(map_dir, 'map_parameters.csv')
         map_parameters_ingestor = ingestors.CSV_Ingestor(
             dao=self.dao, csv_file=map_parameters_file, 
             clazz=models.MapParameters, mappings=[

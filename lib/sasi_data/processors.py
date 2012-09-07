@@ -2,5 +2,6 @@
 import sasi_data.util.gis as gis_util
 
 
-def wkb_to_wkt(wkb_value):
-    return gis_util.wkb_to_wkt(wkb_value)
+def sa_wkb_to_wkt(sa_wkb):
+    """ Convert SA Geometry proxy objects to wkt. """
+    return gis_util.wkb_to_wkt(sa_wkb.geom_wkb)

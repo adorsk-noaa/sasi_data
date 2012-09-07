@@ -41,8 +41,8 @@ class SASI_SqlAlchemyDAO(object):
         # Habitat.
         habitat_table = Table('habitat', self.metadata,
                       Column('id', Integer, primary_key=True),
-                      Column('substrate', String),
-                      Column('energy', String),
+                      Column('substrate_id', String),
+                      Column('energy_id', String),
                       Column('z', Float),
                       Column('area', Float),
                       GeometryExtensionColumn('geom', MultiPolygon(2)),
@@ -79,7 +79,7 @@ class SASI_SqlAlchemyDAO(object):
                            Column('gear_id', String, primary_key=True),
                            Column('feature_id', String, primary_key=True),
                            Column('substrate_id', String, primary_key=True),
-                           Column('energy', String, primary_key=True),
+                           Column('energy_id', String, primary_key=True),
                            Column('s', Integer),
                            Column('r', Integer),
                           )

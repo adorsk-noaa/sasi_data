@@ -40,7 +40,7 @@ class SASI_Ingestor(object):
                     {'source': 'Gear ID', 'target': 'gear_id'},
                     {'source': 'Feature ID', 'target': 'feature_id'},
                     {'source': 'Substrate ID', 'target': 'substrate_id'},
-                    {'source': 'Energy', 'target': 'energy'},
+                    {'source': 'Energy', 'target': 'energy_id'},
                     {'source': 'S', 'target': 's'},
                     {'source': 'R', 'target': 'r'},
                 ]
@@ -87,8 +87,8 @@ class SASI_Ingestor(object):
                 'id': 'habitats',
                 'class': models.Habitat,
                 'mappings': [
-                    {'source': 'SUBSTRATE', 'target': 'substrate'},
-                    {'source': 'ENERGY', 'target': 'energy'},
+                    {'source': 'SUBSTRATE', 'target': 'substrate_id'},
+                    {'source': 'ENERGY', 'target': 'energy_id'},
                     {'source': 'Z', 'target': 'z', 
                      'processor': lambda value: -1.0 * float(value)},
                 ]
@@ -176,7 +176,7 @@ class SASI_Ingestor(object):
                     str(intersection),
                     target_proj=str(self.model_parameters.projection)
                 )
-                hab_key = (habitat.substrate, habitat.energy,)
+                hab_key = (habitat.substrate_id, habitat.energy_id,)
                 pct_area = intersection_area/cell.area
                 composition[hab_key] = composition.get(hab_key, 0) + pct_area
                 cell.z += pct_area * habitat.z

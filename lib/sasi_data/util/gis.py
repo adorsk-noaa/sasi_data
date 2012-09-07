@@ -1,5 +1,5 @@
 from pyproj import Proj, transform
-from shapely import wkb
+from shapely import wkb, wkt
 import shapely.geometry as geometry
 import shapely.geometry.polygon
 from shapely.coords import CoordinateSequence
@@ -58,3 +58,6 @@ def get_intersection(shp1="", shp2=""):
     shape2 = wkb.loads(shp2)
     intersection = shape1.intersection(shape2)
     return wkb.dumps(intersection)
+
+def wkb_to_wkt(wkb_value):
+    return wkt.dumps(wkb.loads(wkb_value))

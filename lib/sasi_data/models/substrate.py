@@ -1,5 +1,5 @@
 class Substrate(object):
-
-	def __init__(self, id=None, name=None):
-		self.id = id
-		self.name = name
+    def __init__(self, id=None, label=None, description=None):
+        self.id = id
+        self.label = label
+        self.description = description

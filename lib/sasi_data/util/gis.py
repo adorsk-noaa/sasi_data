@@ -61,3 +61,6 @@ def get_intersection(shp1="", shp2=""):
 
 def wkb_to_wkt(wkb_value):
     return wkt.dumps(wkb.loads(wkb_value))
+
+def geojson_to_wkb(geojson):
+    return wkb.dumps(geometry.shape(geojson))

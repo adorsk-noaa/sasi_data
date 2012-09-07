@@ -37,6 +37,7 @@ class SASI_SqlAlchemyDAO(object):
         mapper(sasi_models.Cell, cell_table, properties = {
             'geom': GeometryColumn(cell_table.c.geom),
         })
+        schema['sources']['Cell'] = sasi_models.Cell
 
         # Habitat.
         habitat_table = Table('habitat', self.metadata,
@@ -51,6 +52,7 @@ class SASI_SqlAlchemyDAO(object):
         mapper(sasi_models.Habitat, habitat_table, properties = {
             'geom': GeometryColumn(habitat_table.c.geom),
         })
+        schema['sources']['Habitat'] = sasi_models.Habitat
 
         # Substrate.
         substrate_table = Table('substrate', self.metadata,
@@ -58,6 +60,7 @@ class SASI_SqlAlchemyDAO(object):
                                 Column('name', String)
                                )
         mapper(sasi_models.Substrate, substrate_table)
+        schema['sources']['Substrate'] = sasi_models.Substrate
 
         # Feature.
         feature_table = Table('feature', self.metadata,
@@ -66,6 +69,7 @@ class SASI_SqlAlchemyDAO(object):
                               Column('category', String)
                              )
         mapper(sasi_models.Feature, feature_table)
+        schema['sources']['Feature'] = sasi_models.Feature
 
         # Gear.
         gear_table = Table('gear', self.metadata,
@@ -73,6 +77,7 @@ class SASI_SqlAlchemyDAO(object):
                            Column('name', String),
                           )
         mapper(sasi_models.Gear, gear_table)
+        schema['sources']['Gear'] = sasi_models.Gear
 
         # Vulnerability Assessment.
         va_table = Table('va', self.metadata,
@@ -84,6 +89,7 @@ class SASI_SqlAlchemyDAO(object):
                            Column('r', Integer),
                           )
         mapper(sasi_models.VA, va_table)
+        schema['sources']['VA'] = sasi_models.VA
 
         # Fishing Effort.
         effort_table = Table('effort', self.metadata,
@@ -95,6 +101,7 @@ class SASI_SqlAlchemyDAO(object):
                            Column('time', Integer),
                           )
         mapper(sasi_models.Effort, effort_table)
+        schema['sources']['Effort'] = sasi_models.Effort
 
         # Result.
         result_table = Table('result', self.metadata,
@@ -112,9 +119,10 @@ class SASI_SqlAlchemyDAO(object):
                            Column('znet', Float),
                           )
         mapper(sasi_models.Result, result_table)
+        schema['sources']['Result'] = sasi_models.Result
 
         # Model Parameters.
-        parameters_table = Table('parameters', self.metadata,
+        model_parameters_table = Table('model_parameters', self.metadata,
                                  Column('id', Integer, primary_key=True),
                                  Column('time_start', Integer),
                                  Column('time_end', Integer),
@@ -129,12 +137,18 @@ class SASI_SqlAlchemyDAO(object):
                                  Column('w_3', Float),
                                  Column('projection', String),
                                 )
-        mapper(sasi_models.ModelParameters, parameters_table)
+        mapper(sasi_models.ModelParameters, model_parameters_table)
+        schema['sources']['ModelParameters'] = sasi_models.ModelParameters
 
-        # Save sources in schema.
-        for model in ['Cell', 'Habitat', 'Substrate', 'Feature', 'Gear',
-                      'Effort', 'VA', 'ModelParameters', 'Result']:
-            schema['sources'][model] = getattr(sasi_models, model)
+        # Map Parameters.
+        map_parameters_table = Table('map_parameters', self.metadata,
+                                 Column('id', Integer, primary_key=True),
+                                 Column('max_extent', String),
+                                 Column('graticule_intervals', String),
+                                 Column('resolutions', String),
+                                )
+        mapper(sasi_models.MapParameters, map_parameters_table)
+        schema['sources']['MapParameters'] = sasi_models.MapParameters
 
         return schema
 

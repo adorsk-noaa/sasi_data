@@ -174,6 +174,16 @@ def generate_data(data_dir="", time_start=0, time_end=10, time_step=1):
         'data': fishing_efforts_data
     }
 
+    sections['maps'] = {
+        'id': 'maps',
+        'type': 'maps',
+        'map_parameters': {
+            'max_extent': '[-70, 40, -60, 50]',
+            'graticule_intervals': '[2]',
+            'resolutions': '[0.025, 0.0125, 0.00625, 0.003125, 0.0015625, 0.00078125]'
+        }
+    }
+
     for s in sections.values():
         if s['type'] == 'csv':
             generate_csv_section(data_dir, s)
@@ -181,6 +191,8 @@ def generate_data(data_dir="", time_start=0, time_end=10, time_step=1):
             generate_shp_section(data_dir, s)
         elif s['type'] == 'fishing_efforts':
             generate_fishing_efforts_section(data_dir, s)
+        elif s['type'] == 'maps':
+            generate_maps_section(data_dir, s)
 
     return data_dir
 
@@ -217,3 +229,11 @@ def generate_fishing_efforts_section(data_dir, section):
     w = csv.writer(open(os.path.join(section_dir, 'model.csv'),'w'))
     w.writerow(['model_type'])
     w.writerow([section['model_type']])
+
+def generate_maps_section(data_dir, section):
+    section_data_dir = setup_section_dirs(data_dir, section)
+    section_dir = os.path.join(data_dir, section['id'])
+    w = csv.writer(open(os.path.join(section_dir, 'map_parameters.csv'),'w'))
+    map_parameters = section['map_parameters']
+    w.writerow(map_parameters.keys())
+    w.writerow([map_parameters[k] for k in map_parameters.keys()])

@@ -127,6 +127,22 @@ class SASI_Ingestor(object):
                                    )
             ingestor.ingest()
 
+        # Maps.
+        maps_dir = os.path.join(data_dir, 'maps')
+        map_parameters_file = os.path.join(maps_dir, 'map_parameters.csv')
+        map_parameters_ingestor = ingestors.CSV_Ingestor(
+            dao=self.dao, csv_file=map_parameters_file, 
+            clazz=models.MapParameters, mappings=[
+                "max_extent",
+                "graticule_intervals",
+                "resolutions"
+            ]
+        )
+        map_parameters_ingestor.ingest()
+        self.map_parameters = self.dao.query('{{MapParameters}}').fetchone()
+
+        #@TODO: process map layers.
+
         self.post_ingest()
 
     def post_ingest(self):

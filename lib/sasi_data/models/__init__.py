@@ -8,3 +8,4 @@ from effort import Effort
 from va import VA
 from result import Result
 from model_parameters import ModelParameters
+from map_parameters import MapParameters

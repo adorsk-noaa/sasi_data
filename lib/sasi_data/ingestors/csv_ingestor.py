@@ -11,6 +11,10 @@ class CSV_Ingestor(object):
         if isinstance(csv_file, str):
             csv_file = open(csv_file, 'rb')
         self.reader = csv.DictReader(csv_file)
+        for i in range(len(self.mappings)):
+            if isinstance(self.mappings[i], str):
+                self.mappings[i] = {'source': self.mappings[i], 'target':
+                                    self.mappings[i]}
 
     def ingest(self):
         for record in self.reader:

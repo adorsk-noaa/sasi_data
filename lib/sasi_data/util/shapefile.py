@@ -1,4 +1,4 @@
-from fiona import collection
+import fiona
 
 
 class FionaShapefileReader(object):
@@ -16,3 +16,8 @@ class FionaShapefileReader(object):
 
 def get_shapefile_reader(shapefile=""):
     return FionaShapefileReader(shapefile=shapefile)
+
+def get_shapefile_writer(shapefile="", driver='ESRI Shapefile', crs=None, 
+                         schema=None):
+    return fiona.collection(shapefile, "w", driver=driver, crs=crs, 
+                            schema=schema)

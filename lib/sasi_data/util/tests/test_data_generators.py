@@ -1,5 +1,6 @@
 import unittest
 import sasi_data.util.data_generators as data_generators
+import tempfile
 
 
 class DataGeneratorsTest(unittest.TestCase):
@@ -21,6 +22,12 @@ class DataGeneratorsTest(unittest.TestCase):
 
     def test_generate_results(self):
         results = data_generators.generate_results()
+
+    def test_generate_map_layer(self):
+        layer_id = "test_layer"
+        layer_dir = tempfile.mkdtemp()
+        data_generators.generate_map_layer(layer_id=layer_id,
+                                           layer_dir=layer_dir)
 
 if __name__ == '__main__':
     unittest.main()

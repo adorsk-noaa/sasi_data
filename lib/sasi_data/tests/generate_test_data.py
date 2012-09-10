@@ -240,44 +240,49 @@ def generate_map_section(data_dir, section):
     w.writerow(map_parameters.keys())
     w.writerow([map_parameters[k] for k in map_parameters.keys()])
 
-    # Generate map layers.
     map_layers_dir = os.path.join(section_data_dir, "map_layers")
     os.mkdir(map_layers_dir)
-    for i in range(3):
-        layer_id = "layer%s" % i
-        layer_dir = os.path.join(map_layers_dir, layer_id)
-        os.mkdir(layer_dir)
-        shpfile = os.path.join(layer_dir, "%s.shp" % layer_id)
-        c = fiona.collection(shpfile, "w", driver='ESRI Shapefile', 
-                             crs={'no_defs': True, 'ellps': 'WGS84', 
-                                  'datum': 'WGS84', 'proj': 'longlat'},
-                             schema={
-                                 'geometry': 'MultiPolygon',
-                                 'properties': {
-                                     'INT_ATTR': 'int',
-                                     'STR_ATTR': 'str',
-                                 }
-                             },
-                            )
-        for j in range(3):
-            coords = [[j, j], [j,j+1], [j+1, j+1], [j+1,j], [j,j]]
-            record = {
-                'id': j,
-                'geometry': {
-                    'type': 'MultiPolygon',
-                    'coordinates': [[coords]]
-                },
-                'properties': {
-                    'INT_ATTR': j,
-                    'STR_ATTR': "str_%s" % i
-                }
-            }
-            c.write(record)
-        c.close()
+    generate_map_layers(dir=map_layers_dir)
 
-        # Write SLD.
-        sld_file = os.path.join(layer_dir, "%s.sld" % layer_id)
-        open(sld_file, "w").write(get_sld(layer_id))
+def generate_map_layers(n=3, dir=None):
+    for i in range(n):
+        layer_id = "layer%s" % i
+        layer_dir = os.path.join(dir, layer_id)
+        os.mkdir(layer_dir)
+        generate_map_layer(layer_id=layer_id, layer_dir=layer_dir)
+
+def generate_map_layer(layer_id=None, layer_dir=None):
+    shpfile = os.path.join(layer_dir, "%s.shp" % layer_id)
+    c = fiona.collection(shpfile, "w", driver='ESRI Shapefile', 
+                         crs={'no_defs': True, 'ellps': 'WGS84', 
+                              'datum': 'WGS84', 'proj': 'longlat'},
+                         schema={
+                             'geometry': 'MultiPolygon',
+                             'properties': {
+                                 'INT_ATTR': 'int',
+                                 'STR_ATTR': 'str',
+                             }
+                         },
+                        )
+    for j in range(3):
+        coords = [[j, j], [j,j+1], [j+1, j+1], [j+1,j], [j,j]]
+        record = {
+            'id': j,
+            'geometry': {
+                'type': 'MultiPolygon',
+                'coordinates': [[coords]]
+            },
+            'properties': {
+                'INT_ATTR': j,
+                'STR_ATTR': "str_%s" % i
+            }
+        }
+        c.write(record)
+    c.close()
+
+    # Write SLD.
+    sld_file = os.path.join(layer_dir, "%s.sld" % layer_id)
+    open(sld_file, "w").write(get_sld(layer_id))
 
 def get_sld(layer_id):
     return """

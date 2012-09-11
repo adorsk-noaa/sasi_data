@@ -358,16 +358,31 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1):
     }
 
     map_layers_data = []
-    for i in range(3):
+    for i in range(4):
+        if (i % 2) == 0:
+            layer_category = 'base'
+        else:
+            layer_category = 'overlay'
+
         map_layers_data.append({
             'id': "layer%s" % i,
             'label': "Layer %s" % i,
-            'description': "layer%s description" % i
+            'description': "layer%s description" % i,
+            'layer_category': layer_category,
+            'source': 'local_wms',
+            'layer_type': 'WMS',
         })
     sections['map_layers'] = {
         'id': 'map_layers',
         'type': 'map_layers',
-        'fields': ['id', 'label', 'description'],
+        'fields': [
+            'id', 
+            'label', 
+            'description',
+            'layer_category',
+            'source',
+            'layer_type'
+        ],
         'data': map_layers_data
     }
 

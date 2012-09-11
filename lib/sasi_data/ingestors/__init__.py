@@ -1,2 +1,3 @@
 from csv_ingestor import CSV_Ingestor
+from dao_csv_ingestor import DAO_CSV_Ingestor
 from shapefile_ingestor import Shapefile_Ingestor

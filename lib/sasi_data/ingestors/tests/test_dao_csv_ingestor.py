@@ -1,6 +1,6 @@
 import unittest
-from sasi_runner.util.sa.tests.db_testcase import DBTestCase
-from sasi_runner.util.sasi_data.ingest.csv_ingestor import CSV_Ingestor
+from sasi_data.util.sa.tests.db_testcase import DBTestCase
+from sasi_data.ingestors.dao_csv_ingestor import DAO_CSV_Ingestor
 from sa_dao.orm_dao import ORM_DAO
 from StringIO import StringIO
 import csv
@@ -12,7 +12,7 @@ class CSV_Ingestor_TestCase(DBTestCase):
     def setUp(self):
         DBTestCase.setUp(self)
 
-    def test_csv_ingestor(self):
+    def test_dao_csv_ingestor(self):
         Base = declarative_base()
 
         class TestClass(Base):
@@ -53,13 +53,13 @@ class CSV_Ingestor_TestCase(DBTestCase):
             },
         ]
 
-        csv_ingestor = CSV_Ingestor(
+        ingestor = DAO_CSV_Ingestor(
             dao=dao,
             csv_file=csv_file, 
             clazz=TestClass, 
             mappings=mappings
         )
-        csv_ingestor.ingest()
+        ingestor.ingest()
         result = dao.query({
             'SELECT': ['{{TestClass}}']
         })

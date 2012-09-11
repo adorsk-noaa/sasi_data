@@ -73,8 +73,10 @@ class SASI_Ingestor(object):
         for section in csv_sections:
             csv_file = os.path.join(data_dir, section['id'], 'data',
                                     "%s.csv" % section['id'])
-            ingestor = ingestors.CSV_Ingestor(dao=self.dao, 
-                csv_file=csv_file, clazz=section['class'],
+            ingestor = ingestors.CSV_Ingestor(
+                sink=self.dao, 
+                csv_file=csv_file, 
+                clazz=section['class'],
                 mappings=section['mappings'],) 
             ingestor.ingest()
 

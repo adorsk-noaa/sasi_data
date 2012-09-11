@@ -346,14 +346,29 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1):
         'data': fishing_efforts_data
     }
 
-    sections['map'] = {
-        'id': 'map',
-        'type': 'map',
-        'map_parameters': {
+    sections['map_parameters'] = {
+        'id': 'map_parameters',
+        'type': 'csv',
+        'fields': ['max_extent', 'graticule_intervals', 'resolutions'], 
+        'data': [{
             'max_extent': '[-70, 40, -60, 50]',
             'graticule_intervals': '[2]',
             'resolutions': '[0.025, 0.0125, 0.00625, 0.003125, 0.0015625, 0.00078125]'
-        }
+        }]
+    }
+
+    map_layers_data = []
+    for i in range(3):
+        map_layers_data.append({
+            'id': "layer%s" % i,
+            'label': "Layer %s" % i,
+            'description': "layer%s description" % i
+        })
+    sections['map_layers'] = {
+        'id': 'map_layers',
+        'type': 'map_layers',
+        'fields': ['id', 'label', 'description'],
+        'data': map_layers_data
     }
 
     for s in sections.values():
@@ -363,8 +378,8 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1):
             generate_shp_section(data_dir, s)
         elif s['type'] == 'fishing_efforts':
             generate_fishing_efforts_section(data_dir, s)
-        elif s['type'] == 'map':
-            generate_map_section(data_dir, s)
+        elif s['type'] == 'map_layers':
+            generate_map_layers_section(data_dir, s)
 
     return data_dir
 
@@ -405,24 +420,12 @@ def generate_fishing_efforts_section(data_dir, section):
     w.writerow(['model_type'])
     w.writerow([section['model_type']])
 
-def generate_map_section(data_dir, section):
-    section_data_dir = setup_section_dirs(data_dir, section)
-    section_dir = os.path.join(data_dir, section['id'])
-
-    # Write map parameters file.
-    w = csv.writer(open(os.path.join(section_dir, 'map_parameters.csv'),'w'))
-    map_parameters = section['map_parameters']
-    w.writerow(map_parameters.keys())
-    w.writerow([map_parameters[k] for k in map_parameters.keys()])
-
-    map_layers_dir = os.path.join(section_data_dir, "map_layers")
+def generate_map_layers_section(data_dir, section):
+    generate_csv_section(data_dir, section)
+    section_data_dir = os.path.join(data_dir, section['id'], "data")
+    map_layers_dir = os.path.join(section_data_dir, "shapefiles")
     os.mkdir(map_layers_dir)
-    generate_map_layers(dir=map_layers_dir)
-
-def generate_map_layers(n=3, dir=None):
-    for i in range(n):
-        layer_id = "layer%s" % i
-        layer_dir = os.path.join(dir, layer_id)
+    for layer in section['data']:
+        layer_dir = os.path.join(map_layers_dir, layer['id'])
         os.mkdir(layer_dir)
-        generate_map_layer(
-            layer_id=layer_id, layer_dir=layer_dir)
+        generate_map_layer(layer_id=layer['id'], layer_dir=layer_dir)

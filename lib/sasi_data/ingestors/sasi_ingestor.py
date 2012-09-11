@@ -10,7 +10,9 @@ class SASI_Ingestor(object):
         self.dao = dao
 
     def ingest(self, data_dir=None):
-        csv_sections = [
+
+        # CSV to DAO ingests.
+        dao_csv_sections = [
             {
                 'id': 'substrates',
                 'class': models.Substrate,
@@ -67,16 +69,14 @@ class SASI_Ingestor(object):
                                  "+no_defs")
                     }
                 ],
-            }
+            },
         ]
 
-        for section in csv_sections:
+        for section in dao_csv_sections:
             csv_file = os.path.join(data_dir, section['id'], 'data',
                                     "%s.csv" % section['id'])
-            ingestor = ingestors.CSV_Ingestor(
-                sink=self.dao, 
-                csv_file=csv_file, 
-                clazz=section['class'],
+            ingestor = ingestors.DAO_CSV_Ingestor(dao=self.dao, 
+                csv_file=csv_file, clazz=section['class'],
                 mappings=section['mappings'],) 
             ingestor.ingest()
 
@@ -123,27 +123,13 @@ class SASI_Ingestor(object):
             mappings = []
             for attr in ['cell_id', 'time', 'swept_area', 'gear_id']:
                 mappings.append({ 'source': attr, 'target': attr, })
-            ingestor = ingestors.CSV_Ingestor(dao=self.dao, csv_file=csv_file,
-                                    clazz=models.Effort,
-                                    mappings=mappings
-                                   )
+            ingestor = ingestors.DAO_CSV_Ingestor(
+                dao=self.dao, 
+                csv_file=csv_file,
+                clazz=models.Effort,
+                mappings=mappings
+            )
             ingestor.ingest()
-
-        # Maps.
-        map_dir = os.path.join(data_dir, 'map')
-        map_parameters_file = os.path.join(map_dir, 'map_parameters.csv')
-        map_parameters_ingestor = ingestors.CSV_Ingestor(
-            dao=self.dao, csv_file=map_parameters_file, 
-            clazz=models.MapParameters, mappings=[
-                "max_extent",
-                "graticule_intervals",
-                "resolutions"
-            ]
-        )
-        map_parameters_ingestor.ingest()
-        self.map_parameters = self.dao.query('{{MapParameters}}').fetchone()
-
-        #@TODO: process map layers.
 
         self.post_ingest()
 

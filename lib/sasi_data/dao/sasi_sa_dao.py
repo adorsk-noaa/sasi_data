@@ -140,16 +140,6 @@ class SASI_SqlAlchemyDAO(object):
         mapper(sasi_models.ModelParameters, model_parameters_table)
         schema['sources']['ModelParameters'] = sasi_models.ModelParameters
 
-        # Map Parameters.
-        map_parameters_table = Table('map_parameters', self.metadata,
-                                 Column('id', Integer, primary_key=True),
-                                 Column('max_extent', String),
-                                 Column('graticule_intervals', String),
-                                 Column('resolutions', String),
-                                )
-        mapper(sasi_models.MapParameters, map_parameters_table)
-        schema['sources']['MapParameters'] = sasi_models.MapParameters
-
         return schema
 
     def tearDown(self):

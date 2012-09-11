@@ -117,6 +117,7 @@ def generate_results(times=range(3), cells=None, energies=None, features=None,
                                 z=counter,
                                 znet=counter
                             ))
+                            counter += 1
     return results
 
 def generate_map_layer(layer_id=None, layer_dir=None):

@@ -3,7 +3,7 @@ import fiona
 
 class FionaShapefileReader(object):
     def __init__(self, shapefile=""):
-        self.c = collection(shapefile, "r")
+        self.c = fiona.collection(shapefile, "r")
         self.fields = self.get_fields()
         self.crs = self.c.crs
         self.shapetype = self.c.schema['geometry'].upper()

@@ -1,7 +1,7 @@
 import unittest
 from sasi_data.util.sa.tests.db_testcase import DBTestCase
 from sasi_data.ingestors.sasi_ingestor import SASI_Ingestor
-from sasi_data.tests.generate_test_data import generate_data
+from sasi_data.util.data_generators import generate_data_dir
 from sasi_data.dao.sasi_sa_dao import SASI_SqlAlchemyDAO
 import shutil
 
@@ -9,7 +9,7 @@ import shutil
 class SASI_Ingestor_TestCase(DBTestCase):
     def setUp(self):
         DBTestCase.setUp(self)
-        self.data_dir = generate_data()
+        self.data_dir = generate_data_dir()
 
     def tearDown(self):
         if self.data_dir:

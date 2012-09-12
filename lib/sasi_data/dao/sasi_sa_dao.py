@@ -18,7 +18,7 @@ class SASI_SqlAlchemyDAO(object):
         self.metadata = MetaData()
         self.schema = self.generateSchema()
         self.metadata.create_all(bind=self.session.bind)
-        self.sa_dao = ORM_DAO(session=self.session, schema=self.schema)
+        self.orm_dao = ORM_DAO(session=self.session, schema=self.schema)
 
     def generateSchema(self):
         schema = { 'sources': {} }
@@ -147,18 +147,19 @@ class SASI_SqlAlchemyDAO(object):
         pass
 
     def save(self, obj, auto_commit=True):
-        self.sa_dao.session.add(obj)
+        self.orm_dao.session.add(obj)
         if auto_commit:
-            self.sa_dao.session.commit()
+            self.orm_dao.session.commit()
 
     def save_all(self, objs, auto_commit=True):
-        self.sa_dao.session.add_all(objs)
+        self.orm_dao.session.add_all(objs)
         if auto_commit:
-            self.sa_dao.session.commit()
+            self.orm_dao.session.commit()
 
     def commit(self):
-        self.sa_dao.session.commit()
+        self.orm_dao.session.commit()
 
     def query(self, query_def):
-        return self.sa_dao.get_query(query_def)
+        q = self.orm_dao.get_query(query_def)
+        return self.orm_dao.get_result_cursor(q)
 

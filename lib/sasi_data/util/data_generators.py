@@ -352,7 +352,7 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1):
         'type': 'csv',
         'fields': ['max_extent', 'graticule_intervals', 'resolutions'], 
         'data': [{
-            'max_extent': '[-70, 40, -60, 50]',
+            'max_extent': '[0, 0, 5, 5]',
             'graticule_intervals': '[2]',
             'resolutions': '[0.025, 0.0125, 0.00625, 0.003125, 0.0015625, 0.00078125]'
         }]
@@ -362,8 +362,10 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1):
     for i in range(4):
         if (i % 2) == 0:
             layer_category = 'base'
+            transparent = None
         else:
             layer_category = 'overlay'
+            transparent = True
 
         map_layers_data.append({
             'id': "layer%s" % i,
@@ -372,6 +374,7 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1):
             'layer_category': layer_category,
             'source': 'georefine_wms_layer',
             'layer_type': 'WMS',
+            'transparent': transparent
         })
     sections['map_layers'] = {
         'id': 'map_layers',
@@ -382,7 +385,8 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1):
             'description',
             'layer_category',
             'source',
-            'layer_type'
+            'layer_type',
+            'transparent'
         ],
         'data': map_layers_data
     }

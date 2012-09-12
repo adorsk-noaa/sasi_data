@@ -347,48 +347,9 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1):
         'data': fishing_efforts_data
     }
 
-    sections['map_parameters'] = {
-        'id': 'map_parameters',
-        'type': 'csv',
-        'fields': ['max_extent', 'graticule_intervals', 'resolutions'], 
-        'data': [{
-            'max_extent': '[0, 0, 5, 5]',
-            'graticule_intervals': '[2]',
-            'resolutions': '[0.025, 0.0125, 0.00625, 0.003125, 0.0015625, 0.00078125]'
-        }]
-    }
-
-    map_layers_data = []
-    for i in range(4):
-        if (i % 2) == 0:
-            layer_category = 'base'
-            transparent = None
-        else:
-            layer_category = 'overlay'
-            transparent = True
-
-        map_layers_data.append({
-            'id': "layer%s" % i,
-            'label': "Layer %s" % i,
-            'description': "layer%s description" % i,
-            'layer_category': layer_category,
-            'source': 'georefine_wms_layer',
-            'layer_type': 'WMS',
-            'transparent': transparent
-        })
-    sections['map_layers'] = {
-        'id': 'map_layers',
-        'type': 'map_layers',
-        'fields': [
-            'id', 
-            'label', 
-            'description',
-            'layer_category',
-            'source',
-            'layer_type',
-            'transparent'
-        ],
-        'data': map_layers_data
+    sections['georefine'] = {
+        'id': 'georefine',
+        'type': 'georefine',
     }
 
     for s in sections.values():
@@ -398,8 +359,8 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1):
             generate_shp_section(data_dir, s)
         elif s['type'] == 'fishing_efforts':
             generate_fishing_efforts_section(data_dir, s)
-        elif s['type'] == 'map_layers':
-            generate_map_layers_section(data_dir, s)
+        elif s['type'] == 'georefine':
+            generate_georefine_section(data_dir, s)
 
     return data_dir
 
@@ -440,6 +401,55 @@ def generate_fishing_efforts_section(data_dir, section):
     w.writerow(['model_type'])
     w.writerow([section['model_type']])
 
+def generate_georefine_section(data_dir, section):
+    section_data_dir = setup_section_dirs(data_dir, section)
+
+    map_layers_data = []
+    for i in range(4):
+        if (i % 2) == 0:
+            layer_category = 'base'
+            transparent = None
+        else:
+            layer_category = 'overlay'
+            transparent = True
+
+        map_layers_data.append({
+            'id': "layer%s" % i,
+            'label': "Layer %s" % i,
+            'description': "layer%s description" % i,
+            'layer_category': layer_category,
+            'source': 'georefine_wms_layer',
+            'layer_type': 'WMS',
+            'transparent': transparent
+        })
+    map_layers_section = {
+        'id': 'map_layers',
+        'type': 'map_layers',
+        'fields': [
+            'id', 
+            'label', 
+            'description',
+            'layer_category',
+            'source',
+            'layer_type',
+            'transparent'
+        ],
+        'data': map_layers_data
+    }
+    generate_map_layers_section(section_data_dir, map_layers_section)
+
+    map_parameters_section = {
+        'id': 'map_parameters',
+        'type': 'csv',
+        'fields': ['max_extent', 'graticule_intervals', 'resolutions'], 
+        'data': [{
+            'max_extent': '[0, 0, 5, 5]',
+            'graticule_intervals': '[2]',
+            'resolutions': '[0.025, 0.0125, 0.00625, 0.003125, 0.0015625, 0.00078125]'
+        }]
+    }
+    generate_csv_section(section_data_dir, map_parameters_section)
+
 def generate_map_layers_section(data_dir, section):
     generate_csv_section(data_dir, section)
     section_data_dir = os.path.join(data_dir, section['id'], "data")
@@ -449,3 +459,4 @@ def generate_map_layers_section(data_dir, section):
         layer_dir = os.path.join(map_layers_dir, layer['id'])
         os.mkdir(layer_dir)
         generate_map_layer(layer_id=layer['id'], layer_dir=layer_dir)
+

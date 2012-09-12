@@ -1,8 +1,8 @@
 import sasi_data.models as sasi_models 
 from sa_dao.orm_dao import ORM_DAO
 from sqlalchemy import (Table, Column, ForeignKey, ForeignKeyConstraint, 
-                        Integer, String, Float, PickleType, create_engine, 
-                        MetaData)
+                        Integer, String, Text, Float, PickleType, 
+                        create_engine, MetaData)
 from sqlalchemy.orm import (mapper, relationship)
 from geoalchemy import (GeometryExtensionColumn, MultiPolygon, 
                         GeometryColumn, GeometryDDL)
@@ -57,16 +57,26 @@ class SASI_SqlAlchemyDAO(object):
         # Substrate.
         substrate_table = Table('substrate', self.metadata,
                                 Column('id', String, primary_key=True),
-                                Column('name', String)
+                                Column('label', String),
+                                Column('description', Text)
                                )
         mapper(sasi_models.Substrate, substrate_table)
         schema['sources']['Substrate'] = sasi_models.Substrate
 
+        # Energy
+        energy_table = Table('energy', self.metadata,
+                           Column('id', String, primary_key=True),
+                           Column('label', String),
+                          )
+        mapper(sasi_models.Energy, energy_table)
+        schema['sources']['Energy'] = sasi_models.Energy
+
         # Feature.
         feature_table = Table('feature', self.metadata,
                               Column('id', String, primary_key=True),
-                              Column('name', String),
-                              Column('category', String)
+                              Column('label', String),
+                              Column('category', String),
+                              Column('description', Text)
                              )
         mapper(sasi_models.Feature, feature_table)
         schema['sources']['Feature'] = sasi_models.Feature
@@ -74,7 +84,8 @@ class SASI_SqlAlchemyDAO(object):
         # Gear.
         gear_table = Table('gear', self.metadata,
                            Column('id', String, primary_key=True),
-                           Column('name', String),
+                           Column('label', String),
+                           Column('description', Text)
                           )
         mapper(sasi_models.Gear, gear_table)
         schema['sources']['Gear'] = sasi_models.Gear

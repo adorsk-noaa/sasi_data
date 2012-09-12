@@ -370,7 +370,7 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1):
             'label': "Layer %s" % i,
             'description': "layer%s description" % i,
             'layer_category': layer_category,
-            'source': 'local_wms',
+            'source': 'georefine_wms_layer',
             'layer_type': 'WMS',
         })
     sections['map_layers'] = {

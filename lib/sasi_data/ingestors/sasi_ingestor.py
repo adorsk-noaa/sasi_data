@@ -1,5 +1,4 @@
 import sasi_data.ingestors as ingestors
-import sasi_data.models as models
 import sasi_data.util.gis as gis_util
 import os
 import csv
@@ -15,21 +14,21 @@ class SASI_Ingestor(object):
         dao_csv_sections = [
             {
                 'id': 'substrates',
-                'class': models.Substrate,
+                'class': self.dao.schema['sources']['Substrate'],
                 'mappings': [
                     {'source': 'id', 'target': 'id'}
                 ]
             },
             {
                 'id': 'energies',
-                'class': models.Energy,
+                'class': self.dao.schema['sources']['Energy'],
                 'mappings': [
                     {'source': 'id', 'target': 'id'}
                 ]
             },
             {
                 'id': 'features',
-                'class': models.Feature,
+                'class': self.dao.schema['sources']['Feature'],
                 'mappings': [
                     {'source': 'id', 'target': 'id'},
                     {'source': 'category', 'target': 'category'}
@@ -37,14 +36,14 @@ class SASI_Ingestor(object):
             },
             {
                 'id': 'gears',
-                'class': models.Gear,
+                'class': self.dao.schema['sources']['Gear'],
                 'mappings': [
                     {'source': 'id', 'target': 'id'},
                 ]
             },
             {
                 'id': 'va',
-                'class': models.VA,
+                'class': self.dao.schema['sources']['VA'],
                 'mappings': [
                     {'source': 'Gear ID', 'target': 'gear_id'},
                     {'source': 'Feature ID', 'target': 'feature_id'},
@@ -56,7 +55,7 @@ class SASI_Ingestor(object):
             },
             {
                 'id': 'model_parameters',
-                'class': models.ModelParameters,
+                'class': self.dao.schema['sources']['ModelParameters'],
                 'mappings': [
                     {'source': 'time_start', 'target': 'time_start'},
                     {'source': 'time_end', 'target': 'time_end'},
@@ -94,7 +93,7 @@ class SASI_Ingestor(object):
         shp_sections = [
             {
                 'id': 'habitats',
-                'class': models.Habitat,
+                'class': self.dao.schema['sources']['Habitat'],
                 'mappings': [
                     {'source': 'SUBSTRATE', 'target': 'substrate_id'},
                     {'source': 'ENERGY', 'target': 'energy_id'},
@@ -104,7 +103,7 @@ class SASI_Ingestor(object):
             },
             {
                 'id': 'grid',
-                'class': models.Cell,
+                'class': self.dao.schema['sources']['Cell'],
                 'mappings': [
                     {'source': 'TYPE', 'target': 'type'},
                     {'source': 'TYPE_ID', 'target': 'type_id'},
@@ -133,7 +132,7 @@ class SASI_Ingestor(object):
             ingestor = ingestors.DAO_CSV_Ingestor(
                 dao=self.dao, 
                 csv_file=csv_file,
-                clazz=models.Effort,
+                clazz=self.dao.schema['sources']['Effort'],
                 mappings=mappings
             )
             ingestor.ingest()

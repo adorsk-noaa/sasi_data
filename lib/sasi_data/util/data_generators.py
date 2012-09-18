@@ -193,7 +193,7 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1):
     }
 
     sections['energys'] = {
-        'id': 'energys',
+        'id': 'energies',
         'type': 'csv',
         'fields': ['id'],
         'data': [{'id': "High"}, {'id': 'Low'}]

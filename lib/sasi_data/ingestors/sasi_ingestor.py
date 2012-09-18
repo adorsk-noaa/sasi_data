@@ -21,6 +21,13 @@ class SASI_Ingestor(object):
                 ]
             },
             {
+                'id': 'energies',
+                'class': models.Energy,
+                'mappings': [
+                    {'source': 'id', 'target': 'id'}
+                ]
+            },
+            {
                 'id': 'features',
                 'class': models.Feature,
                 'mappings': [

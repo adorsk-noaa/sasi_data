@@ -70,24 +70,24 @@ def generate_gears(n=2):
         counter += 1
     return gears
 
-def generate_energies(n=2):
-    energies = []
+def generate_energys(n=2):
+    energys = []
     counter = 1
     for i in range(n):
-        energies.append(models.Energy(
+        energys.append(models.Energy(
             id="E%s" % counter,
             label="Energy %s" % counter,
             description="Description for energy %s" % counter,
         ))
         counter += 1
-    return energies
+    return energys
 
-def generate_results(times=range(3), cells=None, energies=None, features=None,
+def generate_results(times=range(3), cells=None, energys=None, features=None,
                      substrates=None, gears=None):
     if not cells:
         cells = generate_cell_grid()
-    if not energies:
-        energies = generate_energies()
+    if not energys:
+        energys = generate_energys()
     if not features:
         features = generate_features()
     if not substrates:
@@ -99,7 +99,7 @@ def generate_results(times=range(3), cells=None, energies=None, features=None,
     counter = 1
     for t in times:
         for c in cells:
-            for e in energies:
+            for e in energys:
                 for f in features:
                     for s in substrates:
                         for g in gears:
@@ -192,8 +192,8 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1):
         'data': [{'id': "S%s" % i} for i in range(5)]
     }
 
-    sections['energies'] = {
-        'id': 'energies',
+    sections['energys'] = {
+        'id': 'energys',
         'type': 'csv',
         'fields': ['id'],
         'data': [{'id': "High"}, {'id': 'Low'}]
@@ -232,7 +232,7 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1):
     va_data = []
     i = 0
     for s in sections['substrates']['data']:
-        for e in sections['energies']['data']:
+        for e in sections['energys']['data']:
             for f in sections['features']['data']:
                 for g in sections['gears']['data']:
                     va_data.append({
@@ -262,7 +262,7 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1):
             y = k * 2
             substrate_data = sections['substrates']['data']
             substrate = substrate_data[i % len(substrate_data)]['id']
-            energy_data = sections['energies']['data']
+            energy_data = sections['energys']['data']
             energy = energy_data[i % len(energy_data)]['id']
             z = -1.0 * i
             coords = [[x,y], [x, y+2], [x+2, y+2], [x+2, y], [x,y]]

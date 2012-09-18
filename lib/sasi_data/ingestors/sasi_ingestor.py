@@ -20,7 +20,7 @@ class SASI_Ingestor(object):
                 ]
             },
             {
-                'id': 'energies',
+                'id': 'energys',
                 'class': self.dao.schema['sources']['Energy'],
                 'mappings': [
                     {'source': 'id', 'target': 'id'}

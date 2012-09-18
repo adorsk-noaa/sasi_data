@@ -18,8 +18,8 @@ class DataGeneratorsTest(unittest.TestCase):
     def test_generate_gears(self):
         gears = data_generators.generate_gears()
 
-    def test_generate_energies(self):
-        energies = data_generators.generate_energies()
+    def test_generate_energys(self):
+        energys = data_generators.generate_energys()
 
     def test_generate_results(self):
         results = data_generators.generate_results()

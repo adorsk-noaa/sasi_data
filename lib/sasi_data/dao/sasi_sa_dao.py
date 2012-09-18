@@ -6,6 +6,7 @@ from sqlalchemy import (Table, Column, ForeignKey, ForeignKeyConstraint,
 from sqlalchemy.orm import (mapper, relationship)
 from geoalchemy import (GeometryExtensionColumn, MultiPolygon, 
                         GeometryColumn, GeometryDDL)
+import sys
 
 
 class SASI_SqlAlchemyDAO(object):
@@ -202,4 +203,54 @@ class SASI_SqlAlchemyDAO(object):
     def query(self, query_def):
         q = self.orm_dao.get_query(query_def)
         return self.orm_dao.get_result_cursor(q)
+
+    def save_dicts(self, source_id, dicts, batch_insert=True, batch_size=10000,
+                   commit=True, verbose=False):
+
+        table = self.orm_dao.get_table_for_class(
+            self.schema['sources'][source_id])
+
+        if not batch_insert:
+            self.session.execute(table.insert(), dicts)
+        else:
+            batch = []
+            batch_counter = 1
+            for d in dicts:
+                # If batch is at batch size, process the batch w/out committing.
+                if (batch_counter % batch_size) == 0: 
+                    self.save_dicts(
+                        source_id,
+                        batch, 
+                        batch_insert=False, 
+                        commit=False
+                    )
+                    batch = []
+                    # @TODO: Pass some sort of logger/queue here for reporting?
+                    if verbose: 
+                        print >> sys.stderr, ("Processed %s of %s items. "
+                                              "(%.1f)%%" % (
+                                                  batch_counter, 
+                                                  len(dicts), 
+                                                  (1.0 * batch_counter)/len(dicts) * 100)
+                                             )
+
+                batch.append(d)
+                batch_counter += 1
+
+            # Save any remaining batch items.
+            if batch: 
+                self.save_dicts(
+                    source_id, 
+                    batch, 
+                    batch_insert=False, 
+                    commit=False,
+                )
+
+
+        # Commit if commit is true.
+        if commit: 
+            self.session.commit()
+            if verbose: 
+                print >> sys.stderr, "Saved %s items." % len(dicts)
+
 

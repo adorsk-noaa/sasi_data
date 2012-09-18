@@ -20,7 +20,7 @@ class CSV_Exporter(object):
         for obj in self.objects:
             row = []
             for mapping in self.mappings:
-                raw_value = getattr(obj, mapping['source'])
+                raw_value = getattr(obj, mapping['source'], None)
                 if raw_value == None and mapping.get('default'):
                     raw_value = mapping['default']
                 processor = mapping.get('processor')

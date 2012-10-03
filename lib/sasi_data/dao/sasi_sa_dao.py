@@ -21,6 +21,7 @@ class SASI_SqlAlchemyDAO(object):
         self.metadata = MetaData()
         self.schema = self.generateSchema()
         self.orm_dao = ORM_DAO(session=self.session, schema=self.schema)
+        self.orm_dao.valid_funcs.append('func.st_intersects')
 
     def get_local_mapped_class(self, base_class, table, local_name, **kw):
         local_class = type(local_name, (base_class,), {})

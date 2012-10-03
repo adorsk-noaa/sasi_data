@@ -87,7 +87,7 @@ class SASI_Ingestor(object):
             ingestor.ingest()
 
         # Keep a shortcut to the model parameters.
-        self.model_parameters = self.dao.query('{{ModelParameters}}').fetchone()
+        self.model_parameters = self.dao.query('__ModelParameters').fetchone()
 
         # Shapefile data.
         shp_sections = [
@@ -145,7 +145,7 @@ class SASI_Ingestor(object):
         # @TODO: Setup fishing efforts here.
 
     def calculate_habitat_areas(self):
-        for habitat in self.dao.query('{{Habitat}}'):
+        for habitat in self.dao.query('__Habitat'):
             habitat.area = gis_util.get_area(
                 str(habitat.geom.geom_wkb), 
                 target_proj=str(self.model_parameters.projection)
@@ -154,7 +154,7 @@ class SASI_Ingestor(object):
         self.dao.commit()
 
     def calculate_cell_compositions(self):
-        for cell in self.dao.query('{{Cell}}'):
+        for cell in self.dao.query('__Cell'):
             composition = {}
             cell.z = 0
 
@@ -166,13 +166,13 @@ class SASI_Ingestor(object):
 
             # Calculate habitat composition.
             intersecting_habitats = self.dao.query({
-                'SELECT': '{{Habitat}}',
+                'SELECT': '__Habitat',
                 'WHERE':  [
                     [{'TYPE': 'ENTITY', 
-                      'EXPRESSION': ('func.st_intersects({{Habitat.geom}},'
-                                     '{{Cell.geom}})')
+                      'EXPRESSION': ('func.st_intersects(__Habitat__geom,'
+                                     '__Cell__geom)')
                      }, '==', True],
-                    [{'TYPE': 'ENTITY', 'EXPRESSION': '{{Cell.id}}'}, 
+                    [{'TYPE': 'ENTITY', 'EXPRESSION': '__Cell__id'}, 
                      '==', cell.id]
                 ]
             })

@@ -366,14 +366,15 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1,
     if to_zipfile:
         def zipdir(basedir, archivename, basename=None):
             z = zipfile.ZipFile(archivename, "w", zipfile.ZIP_DEFLATED)
-            if not basename:
-                basename = os.path.basename(basedir)
             for root, dirs, files in os.walk(basedir):
                 for fn in files:
                     absfn = os.path.join(root, fn)
-                    zfn = os.path.join(basename, absfn[len(basedir)+len(os.sep):])
+                    zf_path_parts = [absfn[len(basedir)+len(os.sep):]]
+                    if basename:
+                        zf_path_parts.insert(0, basename)
+                    zfn = os.path.join(*zf_path_parts)
                     z.write(absfn, zfn)
-        zipdir(data_dir, to_zipfile, basename="sasi_config")
+        zipdir(data_dir, to_zipfile)
         return to_zipfile
     else:
         return data_dir

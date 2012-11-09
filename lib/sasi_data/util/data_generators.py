@@ -4,7 +4,7 @@ import sasi_data.util.shapefile as shapefile_util
 import tempfile
 import csv
 import os
-
+import zipfile
 
 
 class FakeGeom(object):
@@ -180,7 +180,8 @@ def get_sld(layer_id):
 </StyledLayerDescriptor>
 """ % layer_id
 
-def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1):
+def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1,
+                      to_zipfile=False):
     if not data_dir:
         data_dir = tempfile.mkdtemp(prefix="tst.")
 
@@ -362,7 +363,20 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1):
         elif s['type'] == 'georefine':
             generate_georefine_section(data_dir, s)
 
-    return data_dir
+    if to_zipfile:
+        def zipdir(basedir, archivename, basename=None):
+            z = zipfile.ZipFile(archivename, "w", zipfile.ZIP_DEFLATED)
+            if not basename:
+                basename = os.path.basename(basedir)
+            for root, dirs, files in os.walk(basedir):
+                for fn in files:
+                    absfn = os.path.join(root, fn)
+                    zfn = os.path.join(basename, absfn[len(basedir)+len(os.sep):])
+                    z.write(absfn, zfn)
+        zipdir(data_dir, to_zipfile, basename="sasi_config")
+        return to_zipfile
+    else:
+        return data_dir
 
 def setup_section_dirs(data_dir, section):
     section_dir = os.path.join(data_dir, section['id'])

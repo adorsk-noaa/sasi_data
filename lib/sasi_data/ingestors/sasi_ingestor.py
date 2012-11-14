@@ -94,6 +94,7 @@ class SASI_Ingestor(object):
             {
                 'id': 'habitats',
                 'class': self.dao.schema['sources']['Habitat'],
+                'reproject_to': '+init=epsg:4326',
                 'mappings': [
                     {'source': 'SUBSTRATE', 'target': 'substrate_id'},
                     {'source': 'ENERGY', 'target': 'energy_id'},
@@ -104,6 +105,7 @@ class SASI_Ingestor(object):
             {
                 'id': 'grid',
                 'class': self.dao.schema['sources']['Cell'],
+                'reproject_to': '+init=epsg:4326',
                 'mappings': [
                     {'source': 'TYPE', 'target': 'type'},
                     {'source': 'TYPE_ID', 'target': 'type_id'},
@@ -113,9 +115,13 @@ class SASI_Ingestor(object):
         for section in shp_sections:
             shp_file = os.path.join(data_dir, section['id'], 'data',
                                     "%s.shp" % section['id'])
-            ingestor = ingestors.Shapefile_Ingestor(dao=self.dao,
-                shp_file=shp_file, clazz=section['class'], 
-                mappings=section['mappings'] ) 
+            ingestor = ingestors.Shapefile_Ingestor(
+                dao=self.dao,
+                shp_file=shp_file,
+                clazz=section['class'],
+                reproject_to=section.get('reproject_to'),
+                mappings=section['mappings'] 
+            ) 
             ingestor.ingest()
 
         # Fishing efforts.

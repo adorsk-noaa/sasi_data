@@ -1,11 +1,12 @@
 from pyproj import Proj, transform
 from shapely import wkb, wkt
 import shapely.geometry as geometry
-import shapely.geometry.polygon
 from shapely.coords import CoordinateSequence
 
 
 def reproject_shape(shape, p1, p2):
+    p1 = get_proj(p1)
+    p2 = get_proj(p2)
     if isinstance(shape, geometry.Polygon):
         proj_shape = reproject_polygon(shape, p1, p2)
     elif isinstance(shape, geometry.MultiPolygon):
@@ -64,3 +65,26 @@ def wkb_to_wkt(wkb_value):
 
 def geojson_to_wkb(geojson):
     return wkb.dumps(geometry.shape(geojson))
+
+def geojson_to_wkt(geojson):
+    return wkt.dumps(geometry.shape(geojson))
+
+geojson_to_shape = geometry.shape
+shape_to_wkt = wkt.dumps
+wkt_to_shape = wkt.loads
+
+def polygon_to_multipolygon(polygon):
+    return geometry.MultiPolygon([polygon])
+
+def reproject_wkt(wkt_str, p1, p2):
+    shape = wkt.loads(wkt_str)
+    proj_shape = reproject_shape(shape, p1, p2)
+    return wkt.dumps(proj_shape)
+
+def get_proj(p):
+    if isinstance(p, Proj): 
+        return p
+    elif isinstance(p, dict):
+        return Proj(**p)
+    elif isinstance(p, str):
+        return Proj(p)

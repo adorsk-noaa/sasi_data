@@ -2,11 +2,13 @@ import sasi_data.ingestors as ingestors
 import sasi_data.util.gis as gis_util
 import os
 import csv
+import logging
 
 
 class SASI_Ingestor(object):
-    def __init__(self, dao=None):
+    def __init__(self, dao=None, logger=logging.getLogger(), **kwargs):
         self.dao = dao
+        self.logger = logger
 
     def ingest(self, data_dir=None):
 
@@ -79,6 +81,7 @@ class SASI_Ingestor(object):
         ]
 
         for section in dao_csv_sections:
+            self.logger.info("Ingesting '%s'" % section['id'])
             csv_file = os.path.join(data_dir, section['id'], 'data',
                                     "%s.csv" % section['id'])
             ingestor = ingestors.DAO_CSV_Ingestor(dao=self.dao, 
@@ -113,6 +116,7 @@ class SASI_Ingestor(object):
             }
         ]
         for section in shp_sections:
+            self.logger.info("Ingesting '%s'" % section['id'])
             shp_file = os.path.join(data_dir, section['id'], 'data',
                                     "%s.shp" % section['id'])
             ingestor = ingestors.Shapefile_Ingestor(
@@ -154,6 +158,7 @@ class SASI_Ingestor(object):
             self.generate_nominal_efforts()
 
     def generate_nominal_efforts(self):
+        self.logger.info('Generating nominal efforts.')
         time_start = self.model_parameters.time_start
         time_end = self.model_parameters.time_end
         time_step = self.model_parameters.time_step
@@ -171,6 +176,7 @@ class SASI_Ingestor(object):
         self.dao.commit()
 
     def calculate_habitat_areas(self):
+        self.logger.info('Calculating habitat areas')
         for habitat in self.dao.query('__Habitat'):
             habitat.area = gis_util.get_area(
                 str(habitat.geom.geom_wkb), 
@@ -180,6 +186,7 @@ class SASI_Ingestor(object):
         self.dao.commit()
 
     def calculate_cell_compositions(self):
+        self.logger.info('Calculating cell compositions.')
         for cell in self.dao.query('__Cell'):
             composition = {}
             cell.z = 0

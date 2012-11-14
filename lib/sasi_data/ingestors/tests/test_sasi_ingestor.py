@@ -9,14 +9,20 @@ import shutil
 class SASI_Ingestor_TestCase(DBTestCase):
     def setUp(self):
         DBTestCase.setUp(self)
-        self.data_dir = generate_data_dir()
 
     def tearDown(self):
-        if self.data_dir:
+        if getattr(self, 'data_dir', None):
             shutil.rmtree(self.data_dir)
         DBTestCase.tearDown(self)
 
     def test_sasi_ingestor(self):
+        self.data_dir = generate_data_dir()
+        dao = SASI_SqlAlchemyDAO(session=self.session)
+        sasi_ingestor = SASI_Ingestor(dao=dao)
+        sasi_ingestor.ingest(data_dir=self.data_dir)
+
+    def test_sasi_ingestor_nominal_efforts(self):
+        self.data_dir = generate_data_dir(effort_model='nominal')
         dao = SASI_SqlAlchemyDAO(session=self.session)
         sasi_ingestor = SASI_Ingestor(dao=dao)
         sasi_ingestor.ingest(data_dir=self.data_dir)

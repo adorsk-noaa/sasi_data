@@ -142,7 +142,27 @@ class SASI_Ingestor(object):
     def post_ingest(self):
         self.calculate_habitat_areas()
         self.calculate_cell_compositions()
-        # @TODO: Setup fishing efforts here.
+
+        # Generate nominal efforts if effort_model is 'nominal'.
+        if self.effort_model_type == 'nominal':
+            self.generate_nominal_efforts()
+
+    def generate_nominal_efforts(self):
+        time_start = self.model_parameters.time_start
+        time_end = self.model_parameters.time_end
+        time_step = self.model_parameters.time_step
+        Effort = self.dao.schema['sources']['Effort']
+        for t in range(time_start, time_end, time_step):
+            for cell in self.dao.query('__Cell'):
+                for gear in self.dao.query('__Gear'):
+                    effort = Effort(
+                        cell_id=cell.id,
+                        time=t,
+                        swept_area=cell.area,
+                        gear_id=gear.id
+                    )
+                    self.dao.save(effort, auto_commit=False)
+        self.dao.commit()
 
     def calculate_habitat_areas(self):
         for habitat in self.dao.query('__Habitat'):

@@ -181,7 +181,7 @@ def get_sld(layer_id):
 """ % layer_id
 
 def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1,
-                      to_zipfile=False):
+                      effort_model='realized', to_zipfile=False):
     if not data_dir:
         data_dir = tempfile.mkdtemp(prefix="tst.")
 
@@ -326,27 +326,34 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1,
         'records': cell_records
     }
 
-    fishing_efforts_data = []
-    num_gears = len(sections['gears']['data'])
-    for cell_record in sections['grid']['records']:
-        cell_geom = gis_util.geojson_to_wkb(cell_record['geometry'])
-        cell_area = gis_util.get_area(cell_geom)
-        for t in range(time_start, time_end, time_step):
-            for g in sections['gears']['data']:
-                fishing_efforts_data.append({
-                    'cell_id': cell_record['id'],
-                    'time': t,
-                    'swept_area': cell_area/num_gears,
-                    'gear_id': g['id']
-                })
+    if effort_model == 'realized':
+        fishing_efforts_data = []
+        num_gears = len(sections['gears']['data'])
+        for cell_record in sections['grid']['records']:
+            cell_geom = gis_util.geojson_to_wkb(cell_record['geometry'])
+            cell_area = gis_util.get_area(cell_geom)
+            for t in range(time_start, time_end, time_step):
+                for g in sections['gears']['data']:
+                    fishing_efforts_data.append({
+                        'cell_id': cell_record['id'],
+                        'time': t,
+                        'swept_area': cell_area/num_gears,
+                        'gear_id': g['id']
+                    })
 
-    sections['fishing_efforts'] = {
-        'id': 'fishing_efforts',
-        'type': 'fishing_efforts',
-        'model_type': 'realized',
-        'fields': ['cell_id', 'time', 'swept_area', 'gear_id'],
-        'data': fishing_efforts_data
-    }
+        sections['fishing_efforts'] = {
+            'id': 'fishing_efforts',
+            'type': 'fishing_efforts',
+            'model_type': 'realized',
+            'fields': ['cell_id', 'time', 'swept_area', 'gear_id'],
+            'data': fishing_efforts_data
+        }
+    elif effort_model == 'nominal':
+        sections['fishing_efforts'] = {
+            'id': 'fishing_efforts',
+            'type': 'fishing_efforts',
+            'model_type': 'nominal',
+        }
 
     sections['georefine'] = {
         'id': 'georefine',
@@ -381,7 +388,8 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1,
 
 def setup_section_dirs(data_dir, section):
     section_dir = os.path.join(data_dir, section['id'])
-    os.mkdir(section_dir)
+    if not os.path.exists(section_dir):
+        os.mkdir(section_dir)
     section_data_dir = os.path.join(section_dir, 'data')
     os.mkdir(section_data_dir)
     return section_data_dir
@@ -410,11 +418,13 @@ def generate_shp_section(data_dir, section):
     w.close()
 
 def generate_fishing_efforts_section(data_dir, section):
-    generate_csv_section(data_dir, section)
     section_dir = os.path.join(data_dir, section['id'])
+    os.makedirs(section_dir)
     w = csv.writer(open(os.path.join(section_dir, 'model.csv'),'w'))
     w.writerow(['model_type'])
     w.writerow([section['model_type']])
+    if section['model_type'] == 'realized':
+        generate_csv_section(data_dir, section)
 
 def generate_georefine_section(data_dir, section):
     section_data_dir = setup_section_dirs(data_dir, section)

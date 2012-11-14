@@ -21,7 +21,10 @@ class Shapefile_Ingestor(object):
             obj = self.clazz()
 
             for mapping in self.mappings:
-                raw_value = record['properties'].get(mapping.get('source'))
+                raw_value = (record['properties'].get(mapping.get('source')) or
+                             record['properties'].get(mapping.get('source').lower())
+                            )
+
                 processor = mapping.get('processor')
                 if not processor:
                     processor = lambda value: value

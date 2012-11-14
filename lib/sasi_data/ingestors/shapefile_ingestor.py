@@ -1,12 +1,13 @@
 import sasi_data.util.shapefile as shapefile_util
 import sasi_data.util.gis as gis_util
+import logging
 
 
 class Shapefile_Ingestor(object):
 
     def __init__(self, shp_file=None, dao=None, clazz=None, mappings={},
                  geom_attr='geom', force_multipolygon=True,
-                 reproject_to=None):
+                 reproject_to=None, logger=logging.getLogger()):
         self.dao = dao
         self.clazz = clazz
         self.mappings = mappings
@@ -14,10 +15,18 @@ class Shapefile_Ingestor(object):
         self.geom_attr = geom_attr
         self.force_multipolygon = force_multipolygon
         self.reproject_to=reproject_to
+        self.logger = logger
 
-    def ingest(self):
+    def ingest(self, log_interval=1000):
         fields = self.reader.fields
-        for record in self.reader.records():
+        records = [r for r in self.reader.records()][:100]
+        num_records = len(records)
+        counter = 0
+        for record in records:
+            counter += 1
+            if ((counter % log_interval) == 0):
+                self.logger.info("Ingesting record #%d of %d (%.1f%%)" % (
+                    counter, num_records, (1.0 * counter/num_records) * 100))
             obj = self.clazz()
 
             for mapping in self.mappings:

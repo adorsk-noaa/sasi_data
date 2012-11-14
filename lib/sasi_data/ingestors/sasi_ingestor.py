@@ -5,6 +5,15 @@ import csv
 import logging
 
 
+class LoggerLogHandler(logging.Handler):
+    """ Custom log handler that logs messages to another
+    logger. This can be used to chain together loggers. """
+    def __init__(self, logger=None, **kwargs):
+        logging.Handler.__init__(self, **kwargs)
+        self.logger = logger
+    def emit(self, record):
+        self.logger.log(record.levelno, self.format(record))
+
 class SASI_Ingestor(object):
     def __init__(self, dao=None, logger=logging.getLogger(), **kwargs):
         self.dao = dao
@@ -81,12 +90,17 @@ class SASI_Ingestor(object):
         ]
 
         for section in dao_csv_sections:
-            self.logger.info("Ingesting '%s'" % section['id'])
+            base_msg = "Ingesting '%s'..." % section['id']
+            self.logger.info(base_msg)
             csv_file = os.path.join(data_dir, section['id'], 'data',
                                     "%s.csv" % section['id'])
-            ingestor = ingestors.DAO_CSV_Ingestor(dao=self.dao, 
-                csv_file=csv_file, clazz=section['class'],
-                mappings=section['mappings'],) 
+            ingestor = ingestors.DAO_CSV_Ingestor(
+                dao=self.dao, 
+                csv_file=csv_file, 
+                clazz=section['class'],
+                mappings=section['mappings'],
+                logger=self.get_section_logger(section['id'], base_msg)
+            ) 
             ingestor.ingest()
 
         # Keep a shortcut to the model parameters.
@@ -116,7 +130,8 @@ class SASI_Ingestor(object):
             }
         ]
         for section in shp_sections:
-            self.logger.info("Ingesting '%s'" % section['id'])
+            base_msg = "Ingesting '%s'..." % section['id']
+            self.logger.info(base_msg)
             shp_file = os.path.join(data_dir, section['id'], 'data',
                                     "%s.shp" % section['id'])
             ingestor = ingestors.Shapefile_Ingestor(
@@ -124,7 +139,8 @@ class SASI_Ingestor(object):
                 shp_file=shp_file,
                 clazz=section['class'],
                 reproject_to=section.get('reproject_to'),
-                mappings=section['mappings'] 
+                mappings=section['mappings'],
+                logger=self.get_section_logger(section['id'], base_msg)
             ) 
             ingestor.ingest()
 
@@ -139,15 +155,26 @@ class SASI_Ingestor(object):
             mappings = []
             for attr in ['cell_id', 'time', 'swept_area', 'gear_id']:
                 mappings.append({ 'source': attr, 'target': attr, })
+            base_msg = "Ingesting '%s'..." % section['id']
+            self.logger.info(base_msg)
             ingestor = ingestors.DAO_CSV_Ingestor(
                 dao=self.dao, 
                 csv_file=csv_file,
                 clazz=self.dao.schema['sources']['Effort'],
-                mappings=mappings
+                mappings=mappings,
+                logger=self.get_section_logger(section['id'], base_msg)
             )
             ingestor.ingest()
 
         self.post_ingest()
+
+    def get_section_logger(self, section_id, base_msg):
+        logger = logging.getLogger("%s_%s" % (id(self), section_id))
+        formatter = logging.Formatter(base_msg + ' %(message)s.')
+        log_handler = LoggerLogHandler(self.logger)
+        log_handler.setFormatter(formatter)
+        logger.addHandler(log_handler)
+        return logger
 
     def post_ingest(self):
         self.calculate_habitat_areas()
@@ -157,16 +184,41 @@ class SASI_Ingestor(object):
         if self.effort_model_type == 'nominal':
             self.generate_nominal_efforts()
 
-    def generate_nominal_efforts(self):
-        self.logger.info('Generating nominal efforts.')
-        time_start = self.model_parameters.time_start
-        time_end = self.model_parameters.time_end
-        time_step = self.model_parameters.time_step
-        Effort = self.dao.schema['sources']['Effort']
-        for t in range(time_start, time_end, time_step):
-            for cell in self.dao.query('__Cell'):
+    def generate_nominal_efforts(self, log_interval=1000):
+        base_msg = 'Generating nominal efforts...'
+
+        self.logger.info(base_msg)
+        logger = self.get_section_logger('nominal_efforts', base_msg)
+
+        EffortClass = self.dao.schema['sources']['Effort']
+
+        tsteps = [tstep for tstep in range(
+            self.model_parameters.time_start,
+            self.model_parameters.time_end,
+            self.model_parameters.time_step,
+        )]
+
+        cells = self.dao.query('__Cell').all()
+        gears = self.dao.query('__Gear').all()
+        total_efforts = len(tsteps) * len(cells) * len(gears)
+
+        counter = 0
+
+        for t in tsteps[:2]:
+            for cell in self.dao.query('__Cell')[:100]:
                 for gear in self.dao.query('__Gear'):
-                    effort = Effort(
+                    counter += 1
+
+                    if (counter % log_interval) == 0:
+                        logger.info(
+                            base_msg + (" generating effort #%d of %d"
+                                        " total (%.1f%%)") % (
+                                            counter, total_efforts, 
+                                            1.0 * counter/total_efforts * 100
+                                        )
+                        )
+
+                    effort = EffortClass(
                         cell_id=cell.id,
                         time=t,
                         swept_area=cell.area,
@@ -175,9 +227,23 @@ class SASI_Ingestor(object):
                     self.dao.save(effort, auto_commit=False)
         self.dao.commit()
 
-    def calculate_habitat_areas(self):
-        self.logger.info('Calculating habitat areas')
-        for habitat in self.dao.query('__Habitat'):
+    def calculate_habitat_areas(self, log_interval=1000):
+        base_msg = 'Calculating habitat areas...'
+        self.logger.info(base_msg)
+        #habitats = self.dao.query('__Habitat').all()
+        habitats = self.dao.query('__Habitat').all()[:2000]
+        num_habitats = len(habitats)
+        counter = 0
+        for habitat in habitats:
+            counter += 1
+            if (counter % log_interval) == 0:
+                logger.info(
+                    base_msg + (" habitat #%d of %d"
+                                "total (%.1f%%)") % (
+                                    counter, num_habitats, 
+                                    1.0 * counter/num_habitats* 100
+                                )
+                )
             habitat.area = gis_util.get_area(
                 str(habitat.geom.geom_wkb), 
                 target_proj=str(self.model_parameters.projection)
@@ -185,9 +251,25 @@ class SASI_Ingestor(object):
             self.dao.save(habitat, auto_commit=False)
         self.dao.commit()
 
-    def calculate_cell_compositions(self):
-        self.logger.info('Calculating cell compositions.')
-        for cell in self.dao.query('__Cell'):
+    def calculate_cell_compositions(self, log_interval=1000):
+        base_msg = 'Calculating cell compositions...'
+        self.logger.info(base_msg)
+        #cells = self.dao.query('__Cell').all()
+        cells = self.dao.query('__Cell').all()[:2000]
+        num_cells = len(cells)
+        counter = 0
+        for cell in cells:
+
+            counter += 1
+            if (counter % log_interval) == 0:
+                logger.info(
+                    base_msg + (" cell #%d of %d"
+                                "total (%.1f%%)") % (
+                                    counter, num_cells, 
+                                    1.0 * counter/num_cells* 100
+                                )
+                )
+
             composition = {}
             cell.z = 0
 

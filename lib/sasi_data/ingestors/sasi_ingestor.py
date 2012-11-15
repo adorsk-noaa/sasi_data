@@ -142,7 +142,7 @@ class SASI_Ingestor(object):
                 mappings=section['mappings'],
                 logger=self.get_section_logger(section['id'], base_msg)
             ) 
-            ingestor.ingest()
+            ingestor.ingest(auto_commit=False)
 
         # Fishing efforts.
         effort_dir = os.path.join(data_dir, 'fishing_efforts')
@@ -165,6 +165,9 @@ class SASI_Ingestor(object):
                 logger=self.get_section_logger(section['id'], base_msg)
             )
             ingestor.ingest()
+
+        # Write to DB.
+        self.dao.commit()
 
         self.post_ingest()
 
@@ -269,6 +272,9 @@ class SASI_Ingestor(object):
             )
 
             # Calculate habitat composition.
+            # @TODO: this is very slow on sqlite, because it doesn't take
+            # advantage of sqlite indices. Have to change this to check for
+            # sqlite if want to get reasonable times.
             intersecting_habitats = self.dao.query({
                 'SELECT': '__Habitat',
                 'WHERE':  [

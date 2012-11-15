@@ -7,6 +7,7 @@ from sqlalchemy.orm import (mapper, relationship)
 from geoalchemy import (GeometryExtensionColumn, MultiPolygon, 
                         GeometryColumn, GeometryDDL)
 import sys
+import logging
 
 
 class SASI_SqlAlchemyDAO(object):
@@ -206,7 +207,7 @@ class SASI_SqlAlchemyDAO(object):
         return self.orm_dao.get_result_cursor(q)
 
     def save_dicts(self, source_id, dicts, batch_insert=True, batch_size=10000,
-                   commit=True, verbose=False):
+                   commit=True, logger=logging.getLogger()):
 
         table = self.orm_dao.get_table_for_class(
             self.schema['sources'][source_id])
@@ -226,14 +227,10 @@ class SASI_SqlAlchemyDAO(object):
                         commit=False
                     )
                     batch = []
-                    # @TODO: Pass some sort of logger/queue here for reporting?
-                    if verbose: 
-                        print >> sys.stderr, ("Processed %s of %s items. "
-                                              "(%.1f)%%" % (
-                                                  batch_counter, 
-                                                  len(dicts), 
-                                                  (1.0 * batch_counter)/len(dicts) * 100)
-                                             )
+
+                    logger.info("%d of %d items (%.1f%%)" % (
+                        batch_counter, len(dicts), 1.0 * batch_counter/len(dicts) * 100
+                    ))
 
                 batch.append(d)
                 batch_counter += 1
@@ -251,7 +248,3 @@ class SASI_SqlAlchemyDAO(object):
         # Commit if commit is true.
         if commit: 
             self.session.commit()
-            if verbose: 
-                print >> sys.stderr, "Saved %s items." % len(dicts)
-
-

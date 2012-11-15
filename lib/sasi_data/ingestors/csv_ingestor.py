@@ -24,7 +24,7 @@ class CSV_Ingestor(object):
                 self.logger.info(
                     base_msg + ("%d of %d (%.1f%%)" % (
                         counter, total_records, 
-                        1.0 * counter/total_records* 100))
+                        1.0 * counter/total_records* 100)))
 
             target = self.initialize_target_record()
             for mapping in self.mappings:

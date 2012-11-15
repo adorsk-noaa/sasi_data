@@ -25,6 +25,7 @@ class SASI_SqlAlchemyDAO(object):
         self.orm_dao = ORM_DAO(session=self.session, schema=self.schema)
         self.orm_dao.valid_funcs.append('func.st_intersects')
         self.orm_dao.valid_funcs.append('geo_funcs.intersects')
+        self.orm_dao.valid_funcs.append('geo_funcs._within_distance')
         self.orm_dao.expression_locals['geo_funcs'] = geo_funcs
 
     def get_local_mapped_class(self, base_class, table, local_name, **kw):

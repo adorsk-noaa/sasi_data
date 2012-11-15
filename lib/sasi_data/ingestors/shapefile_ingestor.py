@@ -7,7 +7,8 @@ class Shapefile_Ingestor(object):
 
     def __init__(self, shp_file=None, dao=None, clazz=None, mappings={},
                  geom_attr='geom', force_multipolygon=True,
-                 reproject_to=None, logger=logging.getLogger()):
+                 reproject_to=None, logger=logging.getLogger(),
+                 limit=None):
         self.dao = dao
         self.clazz = clazz
         self.mappings = mappings
@@ -16,17 +17,19 @@ class Shapefile_Ingestor(object):
         self.force_multipolygon = force_multipolygon
         self.reproject_to=reproject_to
         self.logger = logger
+        self.limit = limit
 
     def ingest(self, log_interval=1000):
         fields = self.reader.fields
         records = [r for r in self.reader.records()]
         num_records = len(records)
         counter = 0
-        for record in records:
+        limit = self.limit or num_records
+        for record in records[:limit]:
             counter += 1
             if ((counter % log_interval) == 0):
                 self.logger.info(" %d of %d (%.1f%%)" % (
-                    counter, num_records, (1.0 * counter/num_records) * 100))
+                    counter, limit, (1.0 * counter/limit) * 100))
             obj = self.clazz()
 
             for mapping in self.mappings:

@@ -57,8 +57,10 @@ def get_area(wkb_str="", source_proj="+init=epsg:4326", target_proj=""):
 def get_intersection(shp1="", shp2=""):
     shape1 = wkb.loads(shp1)
     shape2 = wkb.loads(shp2)
-    intersection = shape1.intersection(shape2)
-    return wkb.dumps(intersection)
+    if shape1.intersects(shape2):
+        intersection = shape1.intersection(shape2)
+        return wkb.dumps(intersection)
+    return None
 
 def wkb_to_wkt(wkb_value):
     return wkt.dumps(wkb.loads(wkb_value))

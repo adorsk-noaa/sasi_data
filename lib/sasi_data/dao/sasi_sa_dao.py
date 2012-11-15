@@ -6,6 +6,7 @@ from sqlalchemy import (Table, Column, ForeignKey, ForeignKeyConstraint,
 from sqlalchemy.orm import (mapper, relationship)
 from geoalchemy import (GeometryExtensionColumn, MultiPolygon, 
                         GeometryColumn, GeometryDDL)
+from geoalchemy import functions as geo_funcs
 import sys
 import logging
 
@@ -23,6 +24,8 @@ class SASI_SqlAlchemyDAO(object):
         self.schema = self.generateSchema()
         self.orm_dao = ORM_DAO(session=self.session, schema=self.schema)
         self.orm_dao.valid_funcs.append('func.st_intersects')
+        self.orm_dao.valid_funcs.append('geo_funcs.intersects')
+        self.orm_dao.expression_locals['geo_funcs'] = geo_funcs
 
     def get_local_mapped_class(self, base_class, table, local_name, **kw):
         local_class = type(local_name, (base_class,), {})

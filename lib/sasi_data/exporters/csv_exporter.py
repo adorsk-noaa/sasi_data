@@ -1,8 +1,10 @@
 import csv
+import logging
 
 
 class CSV_Exporter(object):
-    def __init__(self, csv_file=None, objects=[], mappings={}):
+    def __init__(self, csv_file=None, objects=[], mappings={},
+                 logger=logging.getLogger()):
         self.mappings = mappings
         self.objects = objects
         if isinstance(csv_file, str):
@@ -14,10 +16,16 @@ class CSV_Exporter(object):
                 self.mappings[i] = {'source': self.mappings[i], 'target':
                                     self.mappings[i]}
 
-    def export(self):
+    def export(self, log_interval=1000):
         fields = [mapping['target'] for mapping in self.mappings]
         self.writer.writerow(fields)
+        num_objs = len(self.objects)
+        counter =  
         for obj in self.objects:
+            counter += 1
+            if ((counter % log_interval) == 0):
+                self.logger.info("%d of %d (%.1f%%)" % (
+                    counter, num_objs, (1.0 * counter/num_objs) * 100))
             row = []
             for mapping in self.mappings:
                 raw_value = getattr(obj, mapping['source'], None)

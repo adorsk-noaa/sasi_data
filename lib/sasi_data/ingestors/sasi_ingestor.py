@@ -186,7 +186,6 @@ class SASI_Ingestor(object):
 
     def generate_nominal_efforts(self, log_interval=1000):
         base_msg = 'Generating nominal efforts...'
-
         self.logger.info(base_msg)
         logger = self.get_section_logger('nominal_efforts', base_msg)
 
@@ -204,8 +203,8 @@ class SASI_Ingestor(object):
 
         counter = 0
 
-        for t in tsteps[:2]:
-            for cell in self.dao.query('__Cell')[:100]:
+        for t in tsteps:
+            for cell in self.dao.query('__Cell'):
                 for gear in self.dao.query('__Gear'):
                     counter += 1
 
@@ -230,8 +229,9 @@ class SASI_Ingestor(object):
     def calculate_habitat_areas(self, log_interval=1000):
         base_msg = 'Calculating habitat areas...'
         self.logger.info(base_msg)
-        #habitats = self.dao.query('__Habitat').all()
-        habitats = self.dao.query('__Habitat').all()[:2000]
+        logger = self.get_section_logger('habitat_areas', base_msg)
+
+        habitats = self.dao.query('__Habitat').all()
         num_habitats = len(habitats)
         counter = 0
         for habitat in habitats:
@@ -254,8 +254,9 @@ class SASI_Ingestor(object):
     def calculate_cell_compositions(self, log_interval=1000):
         base_msg = 'Calculating cell compositions...'
         self.logger.info(base_msg)
-        #cells = self.dao.query('__Cell').all()
-        cells = self.dao.query('__Cell').all()[:2000]
+        logger = self.get_section_logger('habitat_areas', base_msg)
+
+        cells = self.dao.query('__Cell').all()
         num_cells = len(cells)
         counter = 0
         for cell in cells:

@@ -19,7 +19,7 @@ class Shapefile_Ingestor(object):
 
     def ingest(self, log_interval=1000):
         fields = self.reader.fields
-        records = [r for r in self.reader.records()][:100]
+        records = [r for r in self.reader.records()]
         num_records = len(records)
         counter = 0
         for record in records:

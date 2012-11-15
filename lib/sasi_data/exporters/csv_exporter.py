@@ -20,7 +20,7 @@ class CSV_Exporter(object):
         fields = [mapping['target'] for mapping in self.mappings]
         self.writer.writerow(fields)
         num_objs = len(self.objects)
-        counter =  
+        counter = 0
         for obj in self.objects:
             counter += 1
             if ((counter % log_interval) == 0):

@@ -234,7 +234,7 @@ class SASI_Ingestor(object):
             counter += 1
 
             if (counter % log_interval) == 0:
-                logger.info(" %d of %d habitats (%.1f%%)" % (
+                logger.info(" %d of %d (%.1f%%)" % (
                     counter, num_habitats, 1.0 * counter/num_habitats* 100))
 
             habitat.area = gis_util.get_area(
@@ -256,7 +256,7 @@ class SASI_Ingestor(object):
 
             counter += 1
             if (counter % log_interval) == 0:
-                logger.info(" %d of %d cells (%.1f%%)" % (
+                logger.info(" %d of %d (%.1f%%)" % (
                     counter, num_cells, 1.0 * counter/num_cells* 100))
 
             composition = {}

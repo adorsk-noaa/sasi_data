@@ -25,7 +25,7 @@ class Shapefile_Ingestor(object):
         for record in records:
             counter += 1
             if ((counter % log_interval) == 0):
-                self.logger.info("Ingesting record #%d of %d (%.1f%%)" % (
+                self.logger.info(" %d of %d (%.1f%%)" % (
                     counter, num_records, (1.0 * counter/num_records) * 100))
             obj = self.clazz()
 

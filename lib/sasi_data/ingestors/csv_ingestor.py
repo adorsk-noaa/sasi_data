@@ -22,12 +22,10 @@ class CSV_Ingestor(object):
             counter += 1
             if (counter % log_interval) == 0:
                 self.logger.info(
-                    base_msg + ("ingesting record #%d of %d"
-                                "total (%.1f%%)") % (
-                                    counter, total_records, 
-                                    1.0 * counter/total_records* 100
-                                )
-                )
+                    base_msg + ("%d of %d (%.1f%%)" % (
+                        counter, total_records, 
+                        1.0 * counter/total_records* 100))
+
             target = self.initialize_target_record()
             for mapping in self.mappings:
                 raw_value = record.get(mapping['source'])

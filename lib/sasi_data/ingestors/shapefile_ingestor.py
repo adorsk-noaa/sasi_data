@@ -19,7 +19,7 @@ class Shapefile_Ingestor(object):
         self.logger = logger
         self.limit = limit
 
-    def ingest(self, log_interval=1000):
+    def ingest(self, log_interval=1000, auto_commit=True):
         fields = self.reader.fields
         records = [r for r in self.reader.records()]
         num_records = len(records)
@@ -55,4 +55,4 @@ class Shapefile_Ingestor(object):
             if self.geom_attr and hasattr(obj, self.geom_attr):
                 setattr(obj, self.geom_attr, gis_util.shape_to_wkt(shape))
 
-            self.dao.save(obj)
+            self.dao.save(obj, auto_commit=auto_commit)

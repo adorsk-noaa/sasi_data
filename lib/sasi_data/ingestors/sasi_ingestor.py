@@ -209,13 +209,9 @@ class SASI_Ingestor(object):
                     counter += 1
 
                     if (counter % log_interval) == 0:
-                        logger.info(
-                            base_msg + (" generating effort #%d of %d"
-                                        " total (%.1f%%)") % (
-                                            counter, total_efforts, 
-                                            1.0 * counter/total_efforts * 100
-                                        )
-                        )
+                        logger.info(" %d of %d efforts (%.1f%%)" % (
+                            counter, total_efforts, 
+                            1.0 * counter/total_efforts * 100))
 
                     effort = EffortClass(
                         cell_id=cell.id,
@@ -236,14 +232,11 @@ class SASI_Ingestor(object):
         counter = 0
         for habitat in habitats:
             counter += 1
+
             if (counter % log_interval) == 0:
-                logger.info(
-                    base_msg + (" habitat #%d of %d"
-                                "total (%.1f%%)") % (
-                                    counter, num_habitats, 
-                                    1.0 * counter/num_habitats* 100
-                                )
-                )
+                logger.info(" %d of %d habitats (%.1f%%)" % (
+                    counter, num_habitats, 1.0 * counter/num_habitats* 100))
+
             habitat.area = gis_util.get_area(
                 str(habitat.geom.geom_wkb), 
                 target_proj=str(self.model_parameters.projection)
@@ -263,13 +256,8 @@ class SASI_Ingestor(object):
 
             counter += 1
             if (counter % log_interval) == 0:
-                logger.info(
-                    base_msg + (" cell #%d of %d"
-                                "total (%.1f%%)") % (
-                                    counter, num_cells, 
-                                    1.0 * counter/num_cells* 100
-                                )
-                )
+                logger.info(" %d of %d cells (%.1f%%)" % (
+                    counter, num_cells, 1.0 * counter/num_cells* 100))
 
             composition = {}
             cell.z = 0

@@ -143,7 +143,8 @@ class SASI_Ingestor(object):
                 reproject_to=section.get('reproject_to'),
                 mappings=section['mappings'],
                 logger=self.get_section_logger(section['id'], base_msg),
-                limit=None,
+                #limit=None,
+                limit=100,
             ) 
             ingestor.ingest(auto_commit=False)
 
@@ -227,7 +228,7 @@ class SASI_Ingestor(object):
                         gear_id=gear.id
                     )
                     self.dao.save(effort, auto_commit=False)
-        logger.info(" Saving efforts..." % (
+        logger.info(" Saving efforts...")
         self.dao.commit()
 
     def calculate_habitat_areas(self, log_interval=1000):
@@ -298,11 +299,11 @@ class SASI_Ingestor(object):
                 AND search_frame=cell_1.geom
                 """
                 subq = select([idx_sql])
-                q = self.dao.get_query(intersection_query_def)
+                q = self.dao.query(intersection_query_def, as_query_obj=True)
                 q = q.filter(literal_column('habitat_1.id').in_(subq))
                 intersecting_habitats = q.all()
             else:
-                intersecting_habitats = self.dao.query(intersection_query_def).all()
+                intersecting_habitats = self.dao.query(intersection_query_def)
 
             for habitat in intersecting_habitats:
                 intersection = gis_util.get_intersection(

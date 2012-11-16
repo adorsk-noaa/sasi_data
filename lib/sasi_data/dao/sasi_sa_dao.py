@@ -206,12 +206,12 @@ class SASI_SqlAlchemyDAO(object):
     def commit(self):
         self.orm_dao.session.commit()
 
-    def get_query(self, query_def):
-        return self.orm_dao.get_query(query_def)
-
-    def query(self, query_def):
+    def query(self, query_def, format_='result_cursor'):
         q = self.orm_dao.get_query(query_def)
-        return self.orm_dao.get_result_cursor(q)
+        if format_ == 'result_cursor':
+            return self.orm_dao.get_result_cursor(q)
+        elif format == 'query_obj':
+            return q
 
     def save_dicts(self, source_id, dicts, batch_insert=True, batch_size=10000,
                    commit=True, logger=logging.getLogger()):

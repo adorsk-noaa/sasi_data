@@ -210,7 +210,7 @@ class SASI_SqlAlchemyDAO(object):
         q = self.orm_dao.get_query(query_def)
         if format_ == 'result_cursor':
             return self.orm_dao.get_result_cursor(q)
-        elif format == 'query_obj':
+        elif format_ == 'query_obj':
             return q
 
     def save_dicts(self, source_id, dicts, batch_insert=True, batch_size=10000,

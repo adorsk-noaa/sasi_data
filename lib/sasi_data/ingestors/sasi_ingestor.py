@@ -205,9 +205,9 @@ class SASI_Ingestor(object):
             self.model_parameters.time_step,
         )]
 
-        cells = self.dao.query('__Cell').all()
-        gears = self.dao.query('__Gear').all()
-        total_efforts = len(tsteps) * len(cells) * len(gears)
+        cells = self.dao.query('__Cell', format_='query_obj')
+        gears = self.dao.query('__Gear', format_='query_obj')
+        total_efforts = len(tsteps) * cells.count() * gears.count()
 
         counter = 0
 
@@ -236,8 +236,8 @@ class SASI_Ingestor(object):
         self.logger.info(base_msg)
         logger = self.get_section_logger('habitat_areas', base_msg)
 
-        habitats = self.dao.query('__Habitat').all()
-        num_habitats = len(habitats)
+        habitats = self.dao.query('__Habitat')
+        num_habitats = habitats.count()
         counter = 0
         for habitat in habitats:
             counter += 1
@@ -258,8 +258,8 @@ class SASI_Ingestor(object):
         self.logger.info(base_msg)
         logger = self.get_section_logger('habitat_areas', base_msg)
 
-        cells = self.dao.query('__Cell').all()
-        num_cells = len(cells)
+        cells = self.dao.query('__Cell')
+        num_cells = cells.count()
         counter = 0
         for cell in cells:
 
@@ -299,9 +299,9 @@ class SASI_Ingestor(object):
                 AND search_frame=cell_1.geom
                 """
                 subq = select([idx_sql])
-                q = self.dao.query(intersection_query_def, as_query_obj=True)
+                q = self.dao.query(intersection_query_def, format_='query_obj')
                 q = q.filter(literal_column('habitat_1.id').in_(subq))
-                intersecting_habitats = q.all()
+                intersecting_habitats = q
             else:
                 intersecting_habitats = self.dao.query(intersection_query_def)
 

@@ -217,7 +217,7 @@ class SASI_Ingestor(object):
                     counter += 1
 
                     if (counter % log_interval) == 0:
-                        logger.info(" %d of %d efforts (%.1f%%)" % (
+                        logger.info(" %d of %d (%.1f%%)" % (
                             counter, total_efforts, 
                             1.0 * counter/total_efforts * 100))
 

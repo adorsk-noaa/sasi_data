@@ -3,10 +3,10 @@ import logging
 
 
 class CSV_Exporter(object):
-    def __init__(self, csv_file=None, objects=[], mappings={},
+    def __init__(self, csv_file=None, data=[], mappings={},
                  logger=logging.getLogger()):
         self.mappings = mappings
-        self.objects = objects
+        self.data = data
         self.logger = logger
 
         if isinstance(csv_file, str):
@@ -21,16 +21,23 @@ class CSV_Exporter(object):
     def export(self, log_interval=1000):
         fields = [mapping['target'] for mapping in self.mappings]
         self.writer.writerow(fields)
-        num_objs = len(self.objects)
+        if isinstance(self.data, dict):
+            items = self.data.get('items')
+            num_items = self.data.get('num_items')
+            if num_items is None:
+                num_items = len(items)
+        else:
+            items = self.data
+            num_items = len(items)
         counter = 0
-        for obj in self.objects:
+        for item in items:
             counter += 1
             if ((counter % log_interval) == 0):
                 self.logger.info("%d of %d (%.1f%%)" % (
-                    counter, num_objs, (1.0 * counter/num_objs) * 100))
+                    counter, num_items, (1.0 * counter/num_items) * 100))
             row = []
             for mapping in self.mappings:
-                raw_value = getattr(obj, mapping['source'], None)
+                raw_value = getattr(item, mapping['source'], None)
                 if raw_value == None and mapping.get('default'):
                     raw_value = mapping['default']
                 processor = mapping.get('processor')

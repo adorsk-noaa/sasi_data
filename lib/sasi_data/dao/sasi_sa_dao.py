@@ -206,6 +206,9 @@ class SASI_SqlAlchemyDAO(object):
     def commit(self):
         self.orm_dao.session.commit()
 
+    def get_query(self, query_def):
+        return self.orm_dao.get_query(query_def)
+
     def query(self, query_def):
         q = self.orm_dao.get_query(query_def)
         return self.orm_dao.get_result_cursor(q)

@@ -1,5 +1,7 @@
 import sasi_data.ingestors as ingestors
 import sasi_data.util.gis as gis_util
+from sqlalchemy.sql import select
+from sqlalchemy.sql.expression import literal_column
 import os
 import csv
 import logging
@@ -140,7 +142,7 @@ class SASI_Ingestor(object):
                 clazz=section['class'],
                 reproject_to=section.get('reproject_to'),
                 mappings=section['mappings'],
-                logger=self.get_section_logger(section['id'], base_msg)
+                logger=self.get_section_logger(section['id'], base_msg),
             ) 
             ingestor.ingest(auto_commit=False)
 
@@ -164,9 +166,10 @@ class SASI_Ingestor(object):
                 mappings=mappings,
                 logger=self.get_section_logger(section['id'], base_msg)
             )
-            ingestor.ingest()
+            #ingestor.ingest()
 
         # Write to DB.
+        self.logger('Saving ingested data...')
         self.dao.commit()
 
         self.post_ingest()
@@ -272,10 +275,7 @@ class SASI_Ingestor(object):
             )
 
             # Calculate habitat composition.
-            # @TODO: this is very slow on sqlite, because it doesn't take
-            # advantage of sqlite indices. Have to change this to check for
-            # sqlite if want to get reasonable times.
-            intersecting_habitats = self.dao.query({
+            intersection_query_def = {
                 'SELECT': '__Habitat',
                 'WHERE':  [
                     [{'TYPE': 'ENTITY', 
@@ -285,7 +285,22 @@ class SASI_Ingestor(object):
                     [{'TYPE': 'ENTITY', 'EXPRESSION': '__Cell__id'}, 
                      '==', cell.id]
                 ]
-            })
+            }
+
+            # For sqlite, use the session directly to get access to the index.
+            # Otherwise queries are too slow.
+            if self.dao.session.connection().engine.url.drivername == 'sqlite':
+                idx_sql = """
+                ROWID FROM SpatialIndex
+                WHERE f_table_name='habitat'
+                AND search_frame=cell_1.geom
+                """
+                subq = select([idx_sql])
+                q = self.dao.get_query(intersection_query_def)
+                q = q.filter(literal_column('habitat_1.id').in_(subq))
+                intersecting_habitats = q.all()
+            else:
+                intersecting_habitats = self.dao.query(intersection_query_def).all()
 
             for habitat in intersecting_habitats:
                 intersection = gis_util.get_intersection(

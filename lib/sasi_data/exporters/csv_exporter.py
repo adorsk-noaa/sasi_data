@@ -7,6 +7,8 @@ class CSV_Exporter(object):
                  logger=logging.getLogger()):
         self.mappings = mappings
         self.objects = objects
+        self.logger = logger
+
         if isinstance(csv_file, str):
             csv_file = open(csv_file, 'wb')
         self.writer = csv.writer(csv_file)

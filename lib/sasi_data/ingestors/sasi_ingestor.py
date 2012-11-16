@@ -143,6 +143,7 @@ class SASI_Ingestor(object):
                 reproject_to=section.get('reproject_to'),
                 mappings=section['mappings'],
                 logger=self.get_section_logger(section['id'], base_msg),
+                limit=None,
             ) 
             ingestor.ingest(auto_commit=False)
 
@@ -169,7 +170,7 @@ class SASI_Ingestor(object):
             #ingestor.ingest()
 
         # Write to DB.
-        self.logger('Saving ingested data...')
+        self.logger.info('Saving ingested data...')
         self.dao.commit()
 
         self.post_ingest()
@@ -226,6 +227,7 @@ class SASI_Ingestor(object):
                         gear_id=gear.id
                     )
                     self.dao.save(effort, auto_commit=False)
+        logger.info(" Saving efforts..." % (
         self.dao.commit()
 
     def calculate_habitat_areas(self, log_interval=1000):

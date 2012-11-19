@@ -17,9 +17,10 @@ class LoggerLogHandler(logging.Handler):
         self.logger.log(record.levelno, self.format(record))
 
 class SASI_Ingestor(object):
-    def __init__(self, dao=None, logger=logging.getLogger(), **kwargs):
+    def __init__(self, dao=None, logger=logging.getLogger(), config={}, **kwargs):
         self.dao = dao
         self.logger = logger
+        self.config = config
 
     def ingest(self, data_dir=None):
 
@@ -96,6 +97,10 @@ class SASI_Ingestor(object):
             self.logger.info(base_msg)
             csv_file = os.path.join(data_dir, section['id'], 'data',
                                     "%s.csv" % section['id'])
+
+            section_config = self.config.get('sections', {}).get(
+                section['id'], {})
+
             ingestor = ingestors.DAO_CSV_Ingestor(
                 dao=self.dao, 
                 csv_file=csv_file, 
@@ -136,6 +141,10 @@ class SASI_Ingestor(object):
             self.logger.info(base_msg)
             shp_file = os.path.join(data_dir, section['id'], 'data',
                                     "%s.shp" % section['id'])
+
+            section_config = self.config.get('sections', {}).get(
+                section['id'], {})
+
             ingestor = ingestors.Shapefile_Ingestor(
                 dao=self.dao,
                 shp_file=shp_file,
@@ -143,8 +152,7 @@ class SASI_Ingestor(object):
                 reproject_to=section.get('reproject_to'),
                 mappings=section['mappings'],
                 logger=self.get_section_logger(section['id'], base_msg),
-                #limit=None,
-                limit=100,
+                limit=section_config.get('limit'),
             ) 
             ingestor.ingest(auto_commit=False)
 
@@ -168,7 +176,7 @@ class SASI_Ingestor(object):
                 mappings=mappings,
                 logger=self.get_section_logger(section['id'], base_msg)
             )
-            #ingestor.ingest()
+            ingestor.ingest()
 
         # Write to DB.
         self.logger.info('Saving ingested data...')

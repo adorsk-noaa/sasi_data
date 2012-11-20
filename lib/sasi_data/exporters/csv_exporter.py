@@ -36,7 +36,6 @@ class CSV_Exporter(object):
             if ((counter % log_interval) == 0):
                 self.logger.info("%d of %d (%.1f%%)" % (
                     counter, num_items, (1.0 * counter/num_items) * 100))
-                self.logger.info("item is: %s" % item)
             row = []
             for mapping in self.mappings:
                 raw_value = getattr(item, mapping['source'], None)
@@ -48,4 +47,3 @@ class CSV_Exporter(object):
                 value = processor(raw_value)
                 row.append(value)
             self.writer.writerow(row)
-

@@ -3,9 +3,11 @@ import logging
 
 
 class CSV_Ingestor(object):
-    def __init__(self, csv_file=None, mappings={}, logger=logging.getLogger()):
+    def __init__(self, csv_file=None, mappings={}, logger=logging.getLogger(),
+                 limit=None):
         self.logger = logger
         self.mappings = mappings
+        self.limit = limit
         if isinstance(csv_file, str):
             csv_file = open(csv_file, 'rb')
         self.reader = csv.DictReader(csv_file)
@@ -16,15 +18,16 @@ class CSV_Ingestor(object):
 
     def ingest(self, log_interval=1000):
         records = [r for r in self.reader]
-        total_records = len(records)
+        num_records = len(records)
         counter = 0
-        for record in records:
+        limit = self.limit or num_records
+        for record in records[:limit]:
             counter += 1
             if (counter % log_interval) == 0:
                 self.logger.info(
                     base_msg + ("%d of %d (%.1f%%)" % (
-                        counter, total_records, 
-                        1.0 * counter/total_records* 100)))
+                        counter, num_records, 
+                        1.0 * counter/num_records* 100)))
 
             target = self.initialize_target_record()
             for mapping in self.mappings:

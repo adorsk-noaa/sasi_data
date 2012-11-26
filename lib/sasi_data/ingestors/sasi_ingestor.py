@@ -106,9 +106,13 @@ class SASI_Ingestor(object):
                 csv_file=csv_file, 
                 clazz=section['class'],
                 mappings=section['mappings'],
-                logger=self.get_section_logger(section['id'], base_msg)
+                logger=self.get_section_logger(section['id'], base_msg),
+                limit=section_config.get('limit'),
             ) 
+            con = self.dao.session.connection()
+            tran = con.begin()
             ingestor.ingest()
+            tran.commit()
 
         # Keep a shortcut to the model parameters.
         self.model_parameters = self.dao.query('__ModelParameters').fetchone()

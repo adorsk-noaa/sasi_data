@@ -30,14 +30,18 @@ class SASI_Ingestor(object):
                 'id': 'substrates',
                 'class': self.dao.schema['sources']['Substrate'],
                 'mappings': [
-                    {'source': 'id', 'target': 'id'}
+                    {'source': 'id', 'target': 'id'},
+                    {'source': 'label', 'target': 'label'},
+                    {'source': 'description', 'target': 'description'},
                 ]
             },
             {
                 'id': 'energies',
                 'class': self.dao.schema['sources']['Energy'],
                 'mappings': [
-                    {'source': 'id', 'target': 'id'}
+                    {'source': 'id', 'target': 'id'},
+                    {'source': 'label', 'target': 'label'},
+                    {'source': 'description', 'target': 'description'},
                 ]
             },
             {
@@ -45,7 +49,9 @@ class SASI_Ingestor(object):
                 'class': self.dao.schema['sources']['Feature'],
                 'mappings': [
                     {'source': 'id', 'target': 'id'},
-                    {'source': 'category', 'target': 'category'}
+                    {'source': 'category', 'target': 'category'},
+                    {'source': 'label', 'target': 'label'},
+                    {'source': 'description', 'target': 'description'},
                 ]
             },
             {
@@ -53,6 +59,8 @@ class SASI_Ingestor(object):
                 'class': self.dao.schema['sources']['Gear'],
                 'mappings': [
                     {'source': 'id', 'target': 'id'},
+                    {'source': 'label', 'target': 'label'},
+                    {'source': 'description', 'target': 'description'},
                 ]
             },
             {

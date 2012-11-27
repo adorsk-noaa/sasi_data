@@ -368,7 +368,7 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1,
         elif s['type'] == 'fishing_efforts':
             generate_fishing_efforts_section(data_dir, s)
         elif s['type'] == 'georefine':
-            generate_georefine_section(data_dir, s)
+            generate_georefine_sections(data_dir, s)
 
     if to_zipfile:
         def zipdir(basedir, archivename, basename=None):
@@ -426,8 +426,7 @@ def generate_fishing_efforts_section(data_dir, section):
     if section['model_type'] == 'realized':
         generate_csv_section(data_dir, section)
 
-def generate_georefine_section(data_dir, section):
-    section_data_dir = setup_section_dirs(data_dir, section)
+def generate_georefine_sections(data_dir, section):
 
     map_layers_data = []
     for i in range(4):
@@ -461,7 +460,7 @@ def generate_georefine_section(data_dir, section):
         ],
         'data': map_layers_data
     }
-    generate_map_layers_section(section_data_dir, map_layers_section)
+    generate_map_layers_section(data_dir, map_layers_section)
 
     map_parameters_section = {
         'id': 'map_parameters',
@@ -473,7 +472,7 @@ def generate_georefine_section(data_dir, section):
             'resolutions': '[0.025, 0.0125, 0.00625, 0.003125, 0.0015625, 0.00078125]'
         }]
     }
-    generate_csv_section(section_data_dir, map_parameters_section)
+    generate_csv_section(data_dir, map_parameters_section)
 
 def generate_map_layers_section(data_dir, section):
     generate_csv_section(data_dir, section)

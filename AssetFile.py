@@ -7,17 +7,16 @@ assets = {
     'sa_dao' : {
         'type': 'git',
         'source': 'https://github.com/adorsk-noaa/sqlalchemy_dao.git',
-    },
-    'sasi_data' : {
-        'type': 'git',
-        'source': 'https://github.com/adorsk-noaa/sasi_data',
+        'path': 'lib/sa_dao',
     },
     'sqlalchemy' : {
         'type': 'hg',
         'source': 'https://adorsk@bitbucket.org/adorsk/sqlalchemy',
+        'path': 'lib/sqlalchemy',
     },
     'geoalchemy': {
         'type': 'git',
         'source': 'https://github.com/adorsk/geoalchemy.git',
+        'path': 'geoalchemy',
     },
 }

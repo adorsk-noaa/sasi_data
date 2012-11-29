@@ -113,7 +113,7 @@ class PyGISUtil(GISUtil):
     @classmethod
     def proj4_to_wkt(clz, proj4_crs):
         if isinstance(proj4_crs, dict):
-            proj4_crs = ' '.join(["%s=%s" % item for item in proj4_crs.items()])
+            proj4_crs = ' '.join(["+%s=%s" % item for item in proj4_crs.items()])
         srs = osr.SpatialReference()
         srs.ImportFromProj4(proj4_crs)
         return srs.ExportToWkt()

@@ -94,7 +94,6 @@ class SASI_Ingestor(object):
                      # Use the mollweide projection as the default.
                      'default': gis_util.get_default_geographic_crs(),
                     }
-                     "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
                 ],
             },
         ]
@@ -265,9 +264,9 @@ class SASI_Ingestor(object):
                 logger.info(" %d of %d (%.1f%%)" % (
                     counter, num_habitats, 1.0 * counter/num_habitats* 100))
 
-            habitat.area = gis_util.get_area(
+            habitat.area = gis_util.get_shape_area(
                 gis_util.wkb_to_shape(str(habitat.geom.geom_wkb)), 
-                target_proj=str(self.model_parameters.projection)
+                target_crs=str(self.model_parameters.projection)
             )
             self.dao.save(habitat, auto_commit=False)
         self.dao.commit()
@@ -291,9 +290,9 @@ class SASI_Ingestor(object):
             cell.z = 0
 
             # Calculate cell area.
-            cell.area = gis_util.get_area(
+            cell.area = gis_util.get_shape_area(
                 gis_util.wkb_to_shape(str(cell.geom.geom_wkb)),
-                target_proj=str(self.model_parameters.projection)
+                target_crs=str(self.model_parameters.projection)
             )
 
             # Calculate habitat composition.
@@ -329,9 +328,9 @@ class SASI_Ingestor(object):
                     gis_util.wkb_to_shape(str(habitat.geom.geom_wkb)),
                     gis_util.wkb_to_shape(str(cell.geom.geom_wkb)),
                 )
-                intersection_area = gis_util.get_area(
+                intersection_area = gis_util.get_shape_area(
                     intersection,
-                    target_proj=str(self.model_parameters.projection)
+                    target_crs=str(self.model_parameters.projection)
                 )
                 hab_key = (habitat.substrate_id, habitat.energy_id,)
                 pct_area = intersection_area/cell.area

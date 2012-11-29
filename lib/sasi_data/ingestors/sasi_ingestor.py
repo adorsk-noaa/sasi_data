@@ -92,10 +92,9 @@ class SASI_Ingestor(object):
                     {'source': 'w_3', 'target': 'w_3'},
                     {'source': 'projection', 'target': 'projection',
                      # Use the mollweide projection as the default.
-                     'default': ("+proj=moll +lon_0=0 +x_0=0 +y_0=0 "
-                                 "+ellps=WGS84 +datum=WGS84 +units=m "
-                                 "+no_defs")
+                     'default': gis_util.get_default_geographic_crs(),
                     }
+                     "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
                 ],
             },
         ]
@@ -267,7 +266,7 @@ class SASI_Ingestor(object):
                     counter, num_habitats, 1.0 * counter/num_habitats* 100))
 
             habitat.area = gis_util.get_area(
-                str(habitat.geom.geom_wkb), 
+                gis_util.wkb_to_shape(str(habitat.geom.geom_wkb)), 
                 target_proj=str(self.model_parameters.projection)
             )
             self.dao.save(habitat, auto_commit=False)
@@ -293,7 +292,7 @@ class SASI_Ingestor(object):
 
             # Calculate cell area.
             cell.area = gis_util.get_area(
-                str(cell.geom.geom_wkb),
+                gis_util.wkb_to_shape(str(cell.geom.geom_wkb)),
                 target_proj=str(self.model_parameters.projection)
             )
 
@@ -327,11 +326,11 @@ class SASI_Ingestor(object):
 
             for habitat in intersecting_habitats:
                 intersection = gis_util.get_intersection(
-                    str(habitat.geom.geom_wkb),
-                    str(cell.geom.geom_wkb),
+                    gis_util.wkb_to_shape(str(habitat.geom.geom_wkb)),
+                    gis_util.wkb_to_shape(str(cell.geom.geom_wkb)),
                 )
                 intersection_area = gis_util.get_area(
-                    str(intersection),
+                    intersection,
                     target_proj=str(self.model_parameters.projection)
                 )
                 hab_key = (habitat.substrate_id, habitat.energy_id,)

@@ -1,11 +1,12 @@
 import fiona
+import py_gis as gis_util
 
 
 class FionaShapefileReader(object):
     def __init__(self, shapefile=""):
         self.c = fiona.collection(shapefile, "r")
         self.fields = self.get_fields()
-        self.crs = self.c.crs
+        self.crs = gis_util.proj4_to_wkt(self.c.crs)
         self.shapetype = self.c.schema['geometry'].upper()
 
     def get_fields(self):

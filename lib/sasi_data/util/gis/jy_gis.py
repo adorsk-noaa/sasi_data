@@ -43,7 +43,7 @@ class JyGISUtil(GISUtil):
 
     @classmethod
     def get_intersection(clz, s1, s2):
-        if s1_._jgeom.intersects(s2._jgeom):
+        if s1._jgeom.intersects(s2._jgeom):
             return Shape(s1._jgeom.intersection(s2._jgeom))
         return None
 

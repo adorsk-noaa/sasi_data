@@ -16,6 +16,10 @@ class PyGISUtil(GISUtil):
         return geometry.shape(geojson)
 
     @classmethod
+    def shape_to_geojson(clz, shape):
+        return json.dumps(geometry.mapping(shape))
+
+    @classmethod
     def reproject_shape(clz, shape, crs1, crs2):
         crs1 = clz.get_crs(crs1)
         crs2 = clz.get_crs(crs2)
@@ -86,10 +90,6 @@ class PyGISUtil(GISUtil):
     @classmethod
     def wkb_to_wkt(clz, wkb_value):
         return wkt.dumps(wkb.loads(wkb_value))
-
-    @classmethod
-    def polygon_to_multipolygon(clz, polygon):
-        return geometry.MultiPolygon([polygon])
 
     @classmethod
     def get_crs(clz, crs):

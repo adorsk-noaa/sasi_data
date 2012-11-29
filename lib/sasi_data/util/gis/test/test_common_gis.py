@@ -1,9 +1,9 @@
 import json
+import unittest
+from sasi_data.util import gis as gis_util
 
 
 class GISCommonTest(object):
-
-    gis = None
 
     def generate_rect_geojson(self, c=[0,0,1,1]):
         return json.dumps({
@@ -14,27 +14,38 @@ class GISCommonTest(object):
             ]]
         })
 
+class GISTestCase(unittest.TestCase, GISCommonTest):
+
     def test_geojson_to_shape(self):
         poly_geojson = self.generate_rect_geojson()
-        shape = self.gis.geojson_to_shape(poly_geojson)
+        shape = gis_util.geojson_to_shape(poly_geojson)
         self.assertEquals(shape.geom_type , 'Polygon')
 
     def test_reproject_shape(self):
         geojson = self.generate_rect_geojson()
-        shape = self.gis.geojson_to_shape(geojson)
-        reprojected_shape = self.gis.reproject_shape(shape, 
+        shape = gis_util.geojson_to_shape(geojson)
+        reprojected_shape = gis_util.reproject_shape(shape, 
                                                    'EPSG:4326', 
-                                                     self.gis.get_mollweide_crs()
+                                                     gis_util.get_mollweide_crs()
                                                     )
     def test_get_shape_area(self):
         geojson = self.generate_rect_geojson()
-        shape = self.gis.geojson_to_shape(geojson)
-        area = self.gis.get_shape_area(shape)
+        shape = gis_util.geojson_to_shape(geojson)
+        area = gis_util.get_shape_area(shape)
 
     def test_get_intersection(self):
         pol1 = self.generate_rect_geojson([0,0,2,1])
         pol2 = self.generate_rect_geojson([1,0,3,1])
-        shp1 = self.gis.geojson_to_shape(pol1)
-        shp2 = self.gis.geojson_to_shape(pol2)
-        intersection = self.gis.get_intersection(shp1, shp2)
-        self.gis.shape_to_wkt(intersection)
+        shp1 = gis_util.geojson_to_shape(pol1)
+        shp2 = gis_util.geojson_to_shape(pol2)
+        intersection = gis_util.get_intersection(shp1, shp2)
+        gis_util.shape_to_wkt(intersection)
+
+    def test_polygon_to_multipolygon(self):
+        poly_geojson = self.generate_rect_geojson()
+        poly_shape = gis_util.geojson_to_shape(poly_geojson)
+        multipoly_shape = gis_util.polygon_to_multipolygon(poly_shape)
+        self.assertEquals(multipoly_shape.geom_type, 'MultiPolygon')
+
+if __name__ == '__main__':
+    unittest.main()

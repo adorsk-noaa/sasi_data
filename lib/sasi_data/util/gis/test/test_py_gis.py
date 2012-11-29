@@ -4,7 +4,7 @@ from test_common_gis import GISCommonTest
 
 
 class PyGISTestCase(unittest.TestCase, GISCommonTest):
-    gis = py_gis
+    pass
 
 if __name__ == '__main__':
     unittest.main()

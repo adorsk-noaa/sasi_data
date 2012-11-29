@@ -1,3 +1,6 @@
+import json
+
+
 class GISUtil(object):
 
     @classmethod
@@ -39,3 +42,10 @@ class GISUtil(object):
     @classmethod
     def geojson_to_wkt(clz, geojson):
         return clz.shape_to_wkt(geojson_to_shape(geojson))
+
+    @classmethod
+    def polygon_to_multipolygon(clz, polygon):
+        geojson = json.loads(clz.shape_to_geojson(polygon))
+        geojson['type'] = 'MultiPolygon'
+        geojson['coordinates'] = [geojson['coordinates']]
+        return clz.geojson_to_shape(json.dumps(geojson))

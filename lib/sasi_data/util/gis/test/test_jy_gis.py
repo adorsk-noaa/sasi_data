@@ -6,16 +6,6 @@ import json
 
 class JyGISTestCase(unittest.TestCase, GISCommonTest):
 
-    gis = jy_gis
-
-    def generate_polygon_geojson(self):
-        return json.dumps({
-            "type": "Polygon",
-            "coordinates": [
-                [[0.0, 0.0], [0.0, 10.0], [1.0, 10.0], [1.0, 0.0], [0.0, 0.0]],
-            ]
-        })
-
     def test_get_crs(self):
         epsg = self.gis.get_crs("EPSG:4326")
         wkt = self.gis.get_crs(jy_gis.get_mollweide_crs())

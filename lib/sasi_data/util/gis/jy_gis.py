@@ -8,7 +8,7 @@ from com.vividsolutions.jts.io import WKTWriter, WKTReader
 import json
 
 
-GeoJSONReader = GeometryJSON()
+GeoJSON = GeometryJSON()
 wkbw = WKBWriter()
 wkbr = WKBReader()
 wktw = WKTWriter()
@@ -30,7 +30,11 @@ class JyGISUtil(GISUtil):
     def geojson_to_shape(clz, geojson):
         if isinstance(geojson, dict):
             geojson = json.dumps(geojson)
-        return Shape(GeoJSONReader.read(geojson))
+        return Shape(GeoJSON.read(geojson))
+
+    @classmethod
+    def shape_to_geojson(clz, shape):
+        return GeoJSON.write(shape)
 
     @classmethod
     def reproject_shape(clz, shape, crs1, crs2):
@@ -39,7 +43,9 @@ class JyGISUtil(GISUtil):
 
     @classmethod
     def get_intersection(clz, s1, s2):
-        return Shape(s1._jgeom.intersection(s2._jgeom))
+        if s1_._jgeom.intersects(s2._jgeom):
+            return Shape(s1._jgeom.intersection(s2._jgeom))
+        return None
 
     @classmethod
     def shape_to_wkt(clz, shape):

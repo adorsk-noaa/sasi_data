@@ -62,10 +62,9 @@ class PyGISUtil(GISUtil):
         return geometry.polygon.LineString(zip(x2, y2))
 
     @classmethod
-    def get_intersection(clz, s1, s2):
-        if s1.intersects(s2):
-            intersection = shape1.intersection(shape2)
-            return clz.shape_to_wkb(intersection)
+    def get_intersection(clz, shape1, shape2):
+        if shape1.intersects(shape2):
+            return shape1.intersection(shape2)
         return None
 
     @classmethod

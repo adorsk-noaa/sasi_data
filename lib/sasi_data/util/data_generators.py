@@ -120,7 +120,9 @@ def generate_results(times=range(3), cells=None, energys=None, features=None,
                             counter += 1
     return results
 
-def generate_map_layer(layer_id=None, layer_dir=None):
+def generate_map_layer(layer_id="layer", layer_dir=None):
+    if not layer_dir:
+        layer_dir = tempfile.mkdtemp(prefix="layer.")
     shpfile = os.path.join(layer_dir, "%s.shp" % layer_id)
     writer = shapefile_util.get_shapefile_writer(
         shapefile=shpfile, driver='ESRI Shapefile', crs={
@@ -152,6 +154,8 @@ def generate_map_layer(layer_id=None, layer_dir=None):
     # Write SLD.
     sld_file = os.path.join(layer_dir, "%s.sld" % layer_id)
     open(sld_file, "w").write(get_sld(layer_id))
+
+    return layer_dir
 
 def get_sld(layer_id):
     return """

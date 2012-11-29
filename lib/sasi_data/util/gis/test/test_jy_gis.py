@@ -1,6 +1,6 @@
 import unittest
 from test_common_gis import GISCommonTest
-from sasi_data.util.jy_gis import JyGISUtil as jy_gis
+from sasi_data.util.gis.jy_gis import JyGISUtil as jy_gis
 import json
 
 

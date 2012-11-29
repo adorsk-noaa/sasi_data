@@ -31,7 +31,7 @@ class GISCommonTest(object):
         shape = self.gis.geojson_to_shape(geojson)
         area = self.gis.get_shape_area(shape)
 
-    def test_get_intersectino(self):
+    def test_get_intersection(self):
         pol1 = self.generate_rect_geojson([0,0,2,1])
         pol2 = self.generate_rect_geojson([1,0,3,1])
         shp1 = self.gis.geojson_to_shape(pol1)

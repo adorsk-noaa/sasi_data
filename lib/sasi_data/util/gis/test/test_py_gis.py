@@ -1,5 +1,5 @@
 import unittest
-from sasi_data.util.py_gis import PyGISUtil as py_gis
+from sasi_data.util.gis.py_gis import PyGISUtil as py_gis
 from test_common_gis import GISCommonTest
 
 

@@ -25,7 +25,7 @@ class JyShapefileReader(object):
                 self.fields.append(name)
 
     def setUpCrs(self):
-        return self.schema.getCoordinateReferenceSystem().toWKT()
+        self.crs = self.schema.getCoordinateReferenceSystem().toWKT()
 
     def setUpShapeType(self):
         return self.geom_attr.getType().name

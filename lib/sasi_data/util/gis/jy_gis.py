@@ -75,7 +75,7 @@ class JyGISUtil(GISUtil):
         if isinstance(crs, CoordinateReferenceSystem):
             return crs
 
-        if isinstance(crs, str):
+        if isinstance(crs, str) or isinstance(crs, unicode):
             # Convert EPSG code to proj4 string.
             if crs.startswith('EPSG:'):
                 return CRS.decode(crs)

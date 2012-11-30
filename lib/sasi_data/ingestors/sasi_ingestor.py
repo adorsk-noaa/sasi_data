@@ -128,7 +128,7 @@ class SASI_Ingestor(object):
             {
                 'id': 'habitats',
                 'class': self.dao.schema['sources']['Habitat'],
-                'reproject_to': '+init=epsg:4326',
+                'reproject_to': 'EPSG:4326',
                 'mappings': [
                     {'source': 'SUBSTRATE', 'target': 'substrate_id'},
                     {'source': 'ENERGY', 'target': 'energy_id'},
@@ -139,7 +139,7 @@ class SASI_Ingestor(object):
             {
                 'id': 'grid',
                 'class': self.dao.schema['sources']['Cell'],
-                'reproject_to': '+init=epsg:4326',
+                'reproject_to': 'EPSG:4326',
                 'mappings': [
                     {'source': 'TYPE', 'target': 'type'},
                     {'source': 'TYPE_ID', 'target': 'type_id'},

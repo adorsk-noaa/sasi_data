@@ -10,7 +10,8 @@ class CSV_Ingestor(object):
         self.limit = limit
         if isinstance(csv_file, str):
             csv_file = open(csv_file, 'rb')
-        self.reader = csv.DictReader(csv_file)
+        self.csv_file = csv_file
+        self.reader = csv.DictReader(self.csv_file)
         for i in range(len(self.mappings)):
             if isinstance(self.mappings[i], str):
                 self.mappings[i] = {'source': self.mappings[i], 'target':
@@ -19,6 +20,7 @@ class CSV_Ingestor(object):
     def ingest(self, log_interval=1000):
         records = [r for r in self.reader]
         num_records = len(records)
+        self.logger.info("%s total records" % num_records)
         counter = 0
         limit = self.limit or num_records
         for record in records[:limit]:
@@ -40,6 +42,8 @@ class CSV_Ingestor(object):
                     value = processor(value)
                 self.set_target_attr(target, mapping['target'], value)
             self.after_record_mapped(record, target)
+
+        self.csv_file.close()
 
     def initialize_target_record(self): pass
 

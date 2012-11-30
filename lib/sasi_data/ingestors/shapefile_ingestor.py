@@ -19,10 +19,10 @@ class Shapefile_Ingestor(object):
         self.logger = logger
         self.limit = limit
 
-    def ingest(self, log_interval=1, auto_commit=True):
+    def ingest(self, log_interval=1000, auto_commit=True):
         fields = self.reader.fields
-        records = [r for r in self.reader.records()]
-        num_records = reader.size
+        num_records = self.reader.size
+        self.logger.info("%s total records" % num_records)
         counter = 0
         limit = self.limit or num_records
         for record in self.reader.records():
@@ -31,6 +31,11 @@ class Shapefile_Ingestor(object):
             if ((counter % log_interval) == 0):
                 self.logger.info(" %d of %d (%.1f%%)" % (
                     counter, limit, (1.0 * counter/limit) * 100))
+
+            if counter == limit:
+                self.reader.close()
+                return
+
             obj = self.clazz()
 
             for mapping in self.mappings:
@@ -56,6 +61,3 @@ class Shapefile_Ingestor(object):
                 setattr(obj, self.geom_attr, gis_util.shape_to_wkt(shape))
 
             self.dao.save(obj, auto_commit=auto_commit)
-
-            if counter == limit:
-                self.reader.close()

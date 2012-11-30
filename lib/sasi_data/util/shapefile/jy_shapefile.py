@@ -11,6 +11,7 @@ class JyShapefileReader(object):
         self.fs = self.ds.getFeatureSource(self.ds.getTypeNames()[0])
         self.fc = self.fs.getFeatures()
         self.size = self.fc.size()
+        self.feature_iterator = self.fc.features()
         self.schema = self.fs.getSchema()
         self.geom_attr = self.schema.getGeometryDescriptor()
 
@@ -33,9 +34,8 @@ class JyShapefileReader(object):
         return self.geom_attr.getType().name
 
     def records(self):
-        self.feature_iterator = self.fc.features()
-        while (feature_iterator.hasNext()):
-            feature = feature_iterator.next()
+        while (self.feature_iterator.hasNext()):
+            feature = self.feature_iterator.next()
 
             jgeom = feature.getDefaultGeometry()
             geojson_geom = json.loads(jy_gis.GeoJSON.toString(jgeom))
@@ -52,8 +52,7 @@ class JyShapefileReader(object):
             yield record
 
     def close(self):
-        if hasattr(self, 'feature_iterator'):
-            self.feature_iterator.close()
+        self.feature_iterator.close()
 
 
 class JyShapefileUtil(object):

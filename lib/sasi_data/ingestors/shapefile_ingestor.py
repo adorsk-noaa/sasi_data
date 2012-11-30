@@ -44,11 +44,10 @@ class Shapefile_Ingestor(object):
                 setattr(obj, mapping['target'], value)
 
             shape = gis_util.geojson_to_shape(record['geometry'])
-            
+
             if self.reproject_to:
                 shape = gis_util.reproject_shape(shape, self.reader.crs, 
                                                  self.reproject_to)
-
             if shape.geom_type == 'Polygon' and self.force_multipolygon:
                 shape = gis_util.polygon_to_multipolygon(shape)
 

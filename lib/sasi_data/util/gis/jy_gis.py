@@ -7,6 +7,7 @@ from org.geotools.geometry.jts import JTS
 from com.vividsolutions.jts.io import WKBWriter, WKBReader
 from com.vividsolutions.jts.io import WKTWriter, WKTReader
 import json
+from java.lang import System
 
 
 GeoJSON = GeometryJSON()
@@ -14,6 +15,12 @@ wkbw = WKBWriter()
 wkbr = WKBReader()
 wktw = WKTWriter()
 wktr = WKTReader()
+
+# This line is *very* important, it forces coordinates to be in 
+# XY order. Some CRS's can have a different order, which leads to
+# much head-banging...
+# Insert some snarky joke about cartographers and light-bulb changing...
+System.setProperty("org.geotools.referencing.forceXY", "true")
 
 class Shape(object):
     """ Wrapper around a JTS Geometry object, to fake
@@ -35,7 +42,7 @@ class JyGISUtil(GISUtil):
 
     @classmethod
     def shape_to_geojson(clz, shape):
-        return GeoJSON.write(shape)
+        return GeoJSON.toString(shape._jgeom)
 
     @classmethod
     def reproject_shape(clz, shape, crs1, crs2):

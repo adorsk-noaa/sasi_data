@@ -11,8 +11,8 @@ class CSV_Exporter(object):
         self.logger = logger
 
         if isinstance(csv_file, str):
-            csv_file = open(csv_file, 'wb')
-        self.writer = csv.writer(csv_file)
+            self.csv_file = open(csv_file, 'wb')
+        self.writer = csv.writer(self.csv_file)
 
         for i in range(len(self.mappings)):
             if isinstance(self.mappings[i], str):
@@ -47,3 +47,4 @@ class CSV_Exporter(object):
                 value = processor(raw_value)
                 row.append(value)
             self.writer.writerow(row)
+        self.csv_file.close()

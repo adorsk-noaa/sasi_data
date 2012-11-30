@@ -49,3 +49,8 @@ class GISUtil(object):
         geojson['type'] = 'MultiPolygon'
         geojson['coordinates'] = [geojson['coordinates']]
         return clz.geojson_to_shape(json.dumps(geojson))
+
+    @classmethod
+    def wkb_to_wkt(clz, wkb):
+        shape = clz.wkb_to_shape(wkb)
+        return clz.shape_to_wkt(shape)

@@ -133,7 +133,8 @@ class SASI_Ingestor(object):
                     {'source': 'SUBSTRATE', 'target': 'substrate_id'},
                     {'source': 'ENERGY', 'target': 'energy_id'},
                     {'source': 'Z', 'target': 'z', 
-                     'processor': lambda value: -1.0 * float(value)},
+                     'processor': lambda value: -1.0 * float(value),
+                    }
                 ]
             },
             {

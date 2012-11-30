@@ -334,8 +334,8 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1,
         fishing_efforts_data = []
         num_gears = len(sections['gears']['data'])
         for cell_record in sections['grid']['records']:
-            cell_geom = gis_util.geojson_to_wkb(cell_record['geometry'])
-            cell_area = gis_util.get_area(cell_geom)
+            cell_geom = gis_util.geojson_to_shape(cell_record['geometry'])
+            cell_area = gis_util.get_shape_area(cell_geom)
             for t in range(time_start, time_end, time_step):
                 for g in sections['gears']['data']:
                     fishing_efforts_data.append({

@@ -115,10 +115,7 @@ class SASI_Ingestor(object):
                 logger=self.get_section_logger(section['id'], base_msg),
                 limit=section_config.get('limit'),
             ) 
-            con = self.dao.session.connection()
-            tran = con.begin()
             ingestor.ingest()
-            tran.commit()
 
         # Keep a shortcut to the model parameters.
         self.model_parameters = self.dao.query('__ModelParameters').fetchone()
@@ -143,7 +140,9 @@ class SASI_Ingestor(object):
                 'reproject_to': 'EPSG:4326',
                 'mappings': [
                     {'source': 'TYPE', 'target': 'type'},
-                    {'source': 'TYPE_ID', 'target': 'type_id'},
+                    {'source': 'TYPE_ID', 'target': 'type_id', 
+                     'processor': int
+                    },
                 ]
             }
         ]

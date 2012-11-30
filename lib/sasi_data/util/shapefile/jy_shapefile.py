@@ -9,6 +9,8 @@ class JyShapefileReader(object):
         self.ds = DataStoreFinder.getDataStore({
             'url': 'file://%s' % shapefile})
         self.fs = self.ds.getFeatureSource(self.ds.getTypeNames()[0])
+        self.fc = self.fs.getFeatures()
+        self.size = self.fc.size()
         self.schema = self.fs.getSchema()
         self.geom_attr = self.schema.getGeometryDescriptor()
 
@@ -31,7 +33,7 @@ class JyShapefileReader(object):
         return self.geom_attr.getType().name
 
     def records(self):
-        feature_iterator = self.fs.getFeatures().features()
+        self.feature_iterator = self.fc.features()
         while (feature_iterator.hasNext()):
             feature = feature_iterator.next()
 
@@ -48,6 +50,11 @@ class JyShapefileReader(object):
                 'properties': properties,
             }
             yield record
+
+    def close(self):
+        if hasattr(self, 'feature_iterator'):
+            self.feature_iterator.close()
+
 
 class JyShapefileUtil(object):
 

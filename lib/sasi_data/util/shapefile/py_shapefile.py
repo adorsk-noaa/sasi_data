@@ -5,6 +5,7 @@ from .. import gis as gis_util
 class FionaShapefileReader(object):
     def __init__(self, shapefile=""):
         self.c = fiona.collection(shapefile, "r")
+        self.size = len(self.c)
         self.fields = self.get_fields()
         self.crs = gis_util.proj4_to_wkt(self.c.crs)
         self.shapetype = self.c.schema['geometry'].upper()
@@ -14,6 +15,9 @@ class FionaShapefileReader(object):
 
     def records(self):
         return self.c.__iter__()
+
+    def close(self):
+        self.c.close()
 
 class PyShapefileUtil(object):
     @classmethod

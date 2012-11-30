@@ -1,3 +1,4 @@
+from sasi_data.util import memoized
 from common_gis import GISUtil
 from org.geotools.geojson.geom import GeometryJSON
 from org.geotools.referencing import CRS
@@ -64,12 +65,14 @@ class JyGISUtil(GISUtil):
         return Shape(wkbr.read(wkbr.hexToBytes(wkb_str)))
 
     @classmethod
+    @memoized
     def get_transform(clz, crs1, crs2):
         crs1 = clz.get_crs(crs1)
         crs2 = clz.get_crs(crs2)
         return CRS.findMathTransform(crs1, crs2, True)
 
     @classmethod
+    @memoized
     def get_crs(clz, crs):
         """ Converts crs definition to GeoTools CRS obj. """
         if isinstance(crs, CoordinateReferenceSystem):

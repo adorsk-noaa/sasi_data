@@ -100,7 +100,7 @@ class PyGISUtil(GISUtil):
             return Proj(**crs)
         elif isinstance(crs, str):
             # Convert WKT crs string to proj4 string.
-            if re.match('\s*PROJCS', crs):
+            if re.match('\s*(PROJ|GEOG)CS', crs):
                 srs = osr.SpatialReference()
                 srs.ImportFromWkt(crs)
                 crs = srs.ExportToProj4()
@@ -123,4 +123,3 @@ class PyGISUtil(GISUtil):
         srs = osr.SpatialReference()
         srs.ImportFromWkt(proj4_crs)
         return srs.ExportToProj4()
-

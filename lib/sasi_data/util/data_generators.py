@@ -125,15 +125,14 @@ def generate_map_layer(layer_id="layer", layer_dir=None):
         layer_dir = tempfile.mkdtemp(prefix="layer.")
     shpfile = os.path.join(layer_dir, "%s.shp" % layer_id)
     writer = shapefile_util.get_shapefile_writer(
-        shapefile=shpfile, driver='ESRI Shapefile', crs={
-            'no_defs': True, 'ellps': 'WGS84', 'datum': 'WGS84', 
-            'proj': 'longlat' }, schema={
-                'geometry': 'MultiPolygon',
-                'properties': {
-                    'INT_ATTR': 'int',
-                    'STR_ATTR': 'str',
-                }
-            },
+        shapefile=shpfile, driver='ESRI Shapefile',
+        crs={'no_defs': True, 'ellps': 'WGS84', 'datum': 'WGS84', 'proj': 'longlat'}, schema={
+            'geometry': 'MultiPolygon',
+            'properties': {
+                'INT_ATTR': 'int',
+                'STR_ATTR': 'str',
+            }
+        },
     )
     for j in range(3):
         coords = [[j, j], [j,j+1], [j+1, j+1], [j+1,j], [j,j]]
@@ -411,11 +410,8 @@ def generate_shp_section(data_dir, section):
     shpfile = os.path.join(section_data_dir, "%s.shp" % section['id'])
     w = shapefile_util.get_shapefile_writer(
         shapefile=shpfile, 
-        crs={
-            'no_defs': True, 'ellps': 'WGS84', 'datum': 'WGS84', 
-            'proj': 'longlat'
-        },
-        schema=section['schema']
+        crs={'no_defs': True, 'ellps': 'WGS84', 'datum': 'WGS84', 'proj': 'longlat'},
+        schema=section['schema'],
     )
     for record in section['records']:
         w.write(record)

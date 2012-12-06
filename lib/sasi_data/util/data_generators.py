@@ -32,16 +32,28 @@ def generate_cell_grid(x0=0, xf=3, y0=0, yf=3, dx=1, dy=1, cell_type="100km"):
             cell_counter += 1
     return grid
 
-def generate_features(n=2, categories=['bio', 'geo']):
+def generate_feature_categories(n=2):
+    feature_categories = []
+    for i in range(n):
+        feature_categories.append(models.FeatureCategory(
+            id="FC%s" % i,
+            label="FeatureCategory %s" % i,
+            description="Description for feature category %s" % i,
+        ))
+    return feature_categories
+
+def generate_features(n=2, feature_categories=None):
+    if not feature_categories:
+        feature_categories = generate_feature_categories()
     features = []
     feature_counter = 1
-    for category in categories:
+    for category in feature_categories:
         for i in range(n):
             features.append(models.Feature(
                 id="F%s" % feature_counter,
                 label="Feature %s" % feature_counter,
                 description="Description for feature %s" % feature_counter,
-                category=category,
+                category=category.id,
             ))
             feature_counter += 1
     return features

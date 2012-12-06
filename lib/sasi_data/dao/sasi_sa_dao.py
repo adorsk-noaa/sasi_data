@@ -96,6 +96,15 @@ class SASI_SqlAlchemyDAO(object):
                            ),
         }
 
+        # Feature Category.
+        mappings['FeatureCategory'] = {
+            'table' : Table('feature_category', self.metadata,
+                            Column('id', String, primary_key=True),
+                            Column('label', String),
+                            Column('description', Text)
+                           ),
+        }
+
         # Feature.
         mappings['Feature'] = {
             'table' : Table('feature', self.metadata,

@@ -45,6 +45,15 @@ class SASI_Ingestor(object):
                 ]
             },
             {
+                'id': 'feature_categories',
+                'class': self.dao.schema['sources']['FeatureCategory'],
+                'mappings': [
+                    {'source': 'id', 'target': 'id'},
+                    {'source': 'label', 'target': 'label'},
+                    {'source': 'description', 'target': 'description'},
+                ]
+            },
+            {
                 'id': 'features',
                 'class': self.dao.schema['sources']['Feature'],
                 'mappings': [

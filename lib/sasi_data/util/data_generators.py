@@ -75,7 +75,7 @@ def generate_gears(n=2):
     counter = 1
     for i in range(n):
         gears.append(models.Gear(
-            id="G%s" % counter,
+            id="GC%s" % counter,
             label="Gear %s" % counter,
             description="Description for gear %s" % counter,
         ))
@@ -200,35 +200,53 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1,
     if not data_dir:
         data_dir = tempfile.mkdtemp(prefix="tst.")
 
+    # Generate data and sections for generic sections.
+    data = {}
+    data['substrates'] = generate_substrates()
+    data['energys'] = generate_energys()
+    data['feature_categories'] = generate_feature_categories()
+    data['features'] = generate_features(
+        feature_categories=data['feature_categories'])
+    data['gears'] = generate_gears()
+
     sections = {}
     sections['substrates'] = {
         'id': 'substrates',
         'type': 'csv',
-        'fields': ['id'],
-        'data': [{'id': "S%s" % i} for i in range(5)]
+        'fields': ['id', 'label', 'description'],
     }
 
     sections['energys'] = {
         'id': 'energies',
         'type': 'csv',
-        'fields': ['id'],
-        'data': [{'id': "High"}, {'id': 'Low'}]
+        'fields': ['id', 'label', 'description'],
+    }
+
+    sections['feature_categories'] = {
+        'id': 'feature_categories',
+        'type': 'csv',
+        'fields': ['id', 'label', 'description'],
     }
         
     sections['features'] = {
         'id': 'features',
         'type': 'csv',
-        'fields': ['id', 'category'],
-        'data': [{'id': "F%s" % i, 'category': ('bio' if i % 2 else 'geo')}
-                 for i in range(10) ]
+        'fields': ['id', 'category', 'label', 'description'],
     }
 
     sections['gears'] = {
         'id': 'gears',
         'type': 'csv',
-        'fields': ['id'],
-        'data': [{'id': "G%s" % i} for i in range(5)]
+        'fields': ['id', 'label', 'description'],
     }
+
+    for section_name, section_data in data.items():
+        section = sections[section_name]
+        section['data'] = []
+        for obj in section_data:
+            section['data'].append(dict(
+                [(attr, getattr(obj, attr)) for attr in section['fields']]
+            ))
 
     sections['model_parameters'] = {
         'id': 'model_parameters',

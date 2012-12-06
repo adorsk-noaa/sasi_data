@@ -5,6 +5,7 @@ import tempfile
 import csv
 import os
 import zipfile
+import json
 
 
 class FakeGeom(object):
@@ -162,38 +163,47 @@ def generate_map_layer(layer_id="layer", layer_dir=None):
         writer.write(record)
     writer.close()
 
-    # Write SLD.
-    sld_file = os.path.join(layer_dir, "%s.sld" % layer_id)
-    open(sld_file, "w").write(get_sld(layer_id))
+    # Write Mapfile.
+    mapfile = os.path.join(layer_dir, "%s.map" % layer_id)
+    open(mapfile, "w").write(get_mapfile(layer_id))
+
+    # Write config file.
+    config_file= os.path.join(layer_dir, "config.json")
+    config = {"mapfile": "%s.map" % layer_id}
+    open(config_file, 'w').write(json.dumps(config))
 
     return layer_dir
 
-def get_sld(layer_id):
+def get_mapfile(layer_id):
     return """
-<?xml version="1.0" encoding="ISO-8859-1"?>
-<StyledLayerDescriptor version="1.0.0" 
-    xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd" 
-    xmlns="http://www.opengis.net/sld" 
-    xmlns:ogc="http://www.opengis.net/ogc" 
-    xmlns:xlink="http://www.w3.org/1999/xlink" 
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <NamedLayer>
-    <Name>%s</Name>
-    <UserStyle>
-      <Title>Simple polygon</Title>
-      <FeatureTypeStyle>
-        <Rule>
-          <PolygonSymbolizer>
-            <Fill>
-              <CssParameter name="fill">#800080</CssParameter>
-            </Fill>
-          </PolygonSymbolizer>
-        </Rule>
-      </FeatureTypeStyle>
-    </UserStyle>
-  </NamedLayer>
-</StyledLayerDescriptor>
-""" % layer_id
+MAP
+  EXTENT -180 -90 180 90
+  IMAGETYPE "image/gif"
+  NAME "%s"
+  SIZE 640 640
+  STATUS ON
+  UNITS DD
+  PROJECTION
+    "init=epsg:4326"
+  END
+  WEB
+    METADATA
+      "ows_enable_request"	"*"
+    END
+  END
+  LAYER
+    STATUS ON
+    NAME "%s"
+    DATA "%s"
+    TYPE POLYGON
+    CLASS
+      STYLE
+        COLOR 0 0 0
+      END # STYLE
+    END # CLASS
+  END # LAYER
+END # MAP
+""" % (layer_id, layer_id, layer_id)
 
 def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1,
                       effort_model='realized', to_zipfile=False):
@@ -507,8 +517,7 @@ def generate_georefine_sections(data_dir, section):
 def generate_map_layers_section(data_dir, section):
     generate_csv_section(data_dir, section)
     section_data_dir = os.path.join(data_dir, section['id'], "data")
-    map_layers_dir = os.path.join(section_data_dir, "shapefiles")
-    os.mkdir(map_layers_dir)
+    map_layers_dir = os.path.join(section_data_dir)
     for layer in section['data']:
         layer_dir = os.path.join(map_layers_dir, layer['id'])
         os.mkdir(layer_dir)

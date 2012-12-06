@@ -158,6 +158,7 @@ class SASI_SqlAlchemyDAO(object):
                            Column('substrate_id', String),
                            Column('energy_id', String),
                            Column('feature_id', String),
+                           Column('feature_category_id', String),
                            Column('a', Float),
                            Column('x', Float),
                            Column('y', Float),

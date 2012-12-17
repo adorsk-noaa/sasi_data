@@ -16,6 +16,9 @@ class CSV_Ingestor(object):
             if isinstance(self.mappings[i], str):
                 self.mappings[i] = {'source': self.mappings[i], 'target':
                                     self.mappings[i]}
+            else:
+                self.mappings[i].setdefault(
+                    'target', self.mappings[i]['source'])
 
     def ingest(self, log_interval=1000):
         records = [r for r in self.reader]

@@ -172,8 +172,9 @@ class SASI_Ingestor(object):
                 mappings=section['mappings'],
                 logger=self.get_section_logger(section['id'], base_msg),
                 limit=section_config.get('limit'),
+                commit_interval=None,
             ) 
-            ingestor.ingest(auto_commit=False)
+            ingestor.ingest()
 
         # Fishing efforts.
         effort_dir = os.path.join(data_dir, 'fishing_efforts')
@@ -255,7 +256,7 @@ class SASI_Ingestor(object):
                         swept_area=cell.area,
                         gear_id=gear.id
                     )
-                    self.dao.save(effort, auto_commit=False)
+                    self.dao.save(effort, commit=False)
         logger.info(" Saving efforts...")
         self.dao.commit()
 
@@ -278,7 +279,7 @@ class SASI_Ingestor(object):
                 gis_util.wkb_to_shape(str(habitat.geom.geom_wkb)), 
                 target_crs=str(self.model_parameters.projection)
             )
-            self.dao.save(habitat, auto_commit=False)
+            self.dao.save(habitat, commit=False)
         self.dao.commit()
 
     def calculate_cell_compositions(self, log_interval=1000):
@@ -348,5 +349,5 @@ class SASI_Ingestor(object):
                 cell.z += pct_area * habitat.z
             cell.habitat_composition = composition
 
-            self.dao.save(cell, auto_commit=False)
+            self.dao.save(cell, commit=False)
         self.dao.commit()

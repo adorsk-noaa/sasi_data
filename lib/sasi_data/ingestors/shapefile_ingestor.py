@@ -58,7 +58,7 @@ class Shapefile_Ingestor(object):
             if self.geom_attr and hasattr(obj, self.geom_attr):
                 setattr(obj, self.geom_attr, gis_util.shape_to_wkt(shape))
 
-            self.dao.save(obj, auto_commit=False)
+            self.dao.save(obj, commit=False)
 
             if self.commit_interval and (counter % self.commit_interval) == 0:
                 self.dao.commit()

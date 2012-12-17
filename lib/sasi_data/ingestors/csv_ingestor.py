@@ -27,10 +27,11 @@ class CSV_Ingestor(object):
         num_records = None
 
         if self.get_count:
+            self.logger.info("Counting records...")
             num_records = 0
             for r in self.reader:
                 num_records += 1
-            sefl.csv_file.seek(0)
+            self.csv_file.seek(0)
             self.logger.info("%s total records" % num_records)
 
         limit = self.limit or num_records
@@ -62,11 +63,11 @@ class CSV_Ingestor(object):
             self.after_record_mapped(record, target, counter)
 
             if self.limit is not None and counter == self.limit:
-                self.reader.close()
+                self.post_ingest(counter)
                 return
 
-        self.csv_file.close()
         self.post_ingest(counter)
+        return
 
     def initialize_target_record(self, counter): 
         pass
@@ -78,4 +79,4 @@ class CSV_Ingestor(object):
         pass
 
     def post_ingest(self, counter):
-        pass
+        self.csv_file.close()

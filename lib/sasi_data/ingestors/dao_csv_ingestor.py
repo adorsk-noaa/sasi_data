@@ -19,5 +19,6 @@ class DAO_CSV_Ingestor(CSV_Ingestor):
             self.dao.commit()
 
     def post_ingest(self, counter):
+        super(DAO_CSV_Ingestor, self).post_ingest(counter)
         if self.commit_interval:
             self.dao.commit()

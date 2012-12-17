@@ -11,22 +11,23 @@ import sys
 import logging
 
 
-class SASI_SqlAlchemyDAO(object):
+class SASI_SqlAlchemyDAO(ORM_DAO):
 
-    def __init__(self, session=None, create_tables=True):
+    def __init__(self, session=None, create_tables=True, **kwargs):
         self.session = session
         self.setUp()
+        ORM_DAO.__init__(self, session=self.session, schema=self.schema,
+                         **kwargs)
+        self.valid_funcs.append('func.st_intersects')
+        self.valid_funcs.append('geo_funcs.intersects')
+        self.valid_funcs.append('geo_funcs._within_distance')
+        self.expression_locals['geo_funcs'] = geo_funcs
         if create_tables:
             self.create_tables()
 
     def setUp(self):
         self.metadata = MetaData()
         self.schema = self.generateSchema()
-        self.orm_dao = ORM_DAO(session=self.session, schema=self.schema)
-        self.orm_dao.valid_funcs.append('func.st_intersects')
-        self.orm_dao.valid_funcs.append('geo_funcs.intersects')
-        self.orm_dao.valid_funcs.append('geo_funcs._within_distance')
-        self.orm_dao.expression_locals['geo_funcs'] = geo_funcs
 
     def get_local_mapped_class(self, base_class, table, local_name, **kw):
         local_class = type(local_name, (base_class,), {})
@@ -198,70 +199,3 @@ class SASI_SqlAlchemyDAO(object):
             schema['sources'][class_name] = mapped_class
 
         return schema
-
-    def tearDown(self):
-        # Remove db tables.
-        pass
-
-    def save(self, obj, auto_commit=True):
-        self.orm_dao.session.add(obj)
-        if auto_commit:
-            self.orm_dao.session.commit()
-
-    def save_all(self, objs, auto_commit=True):
-        self.orm_dao.session.add_all(objs)
-        if auto_commit:
-            self.orm_dao.session.commit()
-
-    def commit(self):
-        self.orm_dao.session.commit()
-
-    def query(self, query_def, format_='result_cursor'):
-        q = self.orm_dao.get_query(query_def)
-        if format_ == 'result_cursor':
-            return self.orm_dao.get_result_cursor(q)
-        elif format_ == 'query_obj':
-            return q
-
-    def save_dicts(self, source_id, dicts, batch_insert=True, batch_size=10000,
-                   commit=True, logger=logging.getLogger()):
-
-        table = self.orm_dao.get_table_for_class(
-            self.schema['sources'][source_id])
-
-        if not batch_insert:
-            self.session.execute(table.insert(), dicts)
-        else:
-            batch = []
-            batch_counter = 1
-            for d in dicts:
-                # If batch is at batch size, process the batch w/out committing.
-                if (batch_counter % batch_size) == 0: 
-                    self.save_dicts(
-                        source_id,
-                        batch, 
-                        batch_insert=False, 
-                        commit=False
-                    )
-                    batch = []
-
-                    logger.info("%d of %d items (%.1f%%)" % (
-                        batch_counter, len(dicts), 1.0 * batch_counter/len(dicts) * 100
-                    ))
-
-                batch.append(d)
-                batch_counter += 1
-
-            # Save any remaining batch items.
-            if batch: 
-                self.save_dicts(
-                    source_id, 
-                    batch, 
-                    batch_insert=False, 
-                    commit=False,
-                )
-
-
-        # Commit if commit is true.
-        if commit: 
-            self.session.commit()

@@ -8,7 +8,7 @@ class Shapefile_Ingestor(object):
     def __init__(self, shp_file=None, dao=None, clazz=None, mappings={},
                  geom_attr='geom', force_multipolygon=True,
                  reproject_to=None, logger=logging.getLogger(),
-                 limit=None):
+                 limit=None, log_interval=1000, commit_interval=1000):
         self.dao = dao
         self.clazz = clazz
         self.mappings = mappings
@@ -18,8 +18,10 @@ class Shapefile_Ingestor(object):
         self.reproject_to=reproject_to
         self.logger = logger
         self.limit = limit
+        self.commit_interval = commit_interval
+        self.log_interval = log_interval
 
-    def ingest(self, log_interval=1000, auto_commit=True):
+    def ingest(self):
         fields = self.reader.fields
         num_records = self.reader.size
         self.logger.info("%s total records" % num_records)
@@ -28,13 +30,9 @@ class Shapefile_Ingestor(object):
         for record in self.reader.records():
             counter += 1
 
-            if ((counter % log_interval) == 0):
+            if ((counter % self.log_interval) == 0):
                 self.logger.info(" %d of %d (%.1f%%)" % (
                     counter, limit, (1.0 * counter/limit) * 100))
-
-            if counter == limit:
-                self.reader.close()
-                return
 
             obj = self.clazz()
 
@@ -60,4 +58,14 @@ class Shapefile_Ingestor(object):
             if self.geom_attr and hasattr(obj, self.geom_attr):
                 setattr(obj, self.geom_attr, gis_util.shape_to_wkt(shape))
 
-            self.dao.save(obj, auto_commit=auto_commit)
+            self.dao.save(obj, auto_commit=False)
+
+            if self.commit_interval and (counter % self.commit_interval) == 0:
+                self.dao.commit()
+
+            if counter == limit:
+                self.reader.close()
+                return
+
+        self.reader.close()
+        return

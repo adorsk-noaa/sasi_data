@@ -61,7 +61,7 @@ class CSV_Ingestor_TestCase(DBTestCase):
         )
         ingestor.ingest()
         result = dao.query({
-            'SELECT': ['{{TestClass}}']
+            'SELECT': ['__TestClass']
         })
 
 if __name__ == '__main__':

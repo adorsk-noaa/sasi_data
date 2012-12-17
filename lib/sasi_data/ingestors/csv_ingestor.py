@@ -31,7 +31,10 @@ class CSV_Ingestor(object):
             num_records = 0
             for r in self.reader:
                 num_records += 1
+                if self.limit and num_records == self.limit:
+                    break
             self.csv_file.seek(0)
+            self.reader = csv.DictReader(self.csv_file)
             self.logger.info("%s total records" % num_records)
 
         limit = self.limit or num_records

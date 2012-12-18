@@ -28,6 +28,9 @@ class PyShapefileUtil(object):
     @classmethod
     def get_shapefile_writer(clz, shapefile="", driver='ESRI Shapefile',
                              crs=None, schema=None):
+        if isinstance(crs, str):
+            crs = gis_util.crs_str_to_proj4_dict(crs)
+
         return fiona.collection(
             shapefile, "w", driver=driver, crs=crs,
             schema=schema

@@ -100,7 +100,7 @@ class PyGISUtil(GISUtil):
             return Proj(**crs)
         elif isinstance(crs, str):
             # Convert WKT crs string to proj4 string.
-            if re.match('\s*(PROJ|GEOG)CS', crs):
+            if clz.is_wkt_crs(crs):
                 srs = osr.SpatialReference()
                 srs.ImportFromWkt(crs)
                 crs = srs.ExportToProj4()
@@ -123,3 +123,22 @@ class PyGISUtil(GISUtil):
         srs = osr.SpatialReference()
         srs.ImportFromWkt(proj4_crs)
         return srs.ExportToProj4()
+
+    @classmethod
+    def proj4_str_to_dict(clz, proj4_str):
+        """ Proj4 key-value pair string to dict. """
+        kvps = proj4_str.split()
+        return dict([kvp.split('=') for kvp in kvps])
+
+    @classmethod
+    def is_wkt_crs(clz, crs_str):
+        return re.match('\s*(PROJ|GEOG)CS', crs_str)
+
+    @classmethod
+    def crs_str_to_proj4_dict(clz, crs_str):
+        if clz.is_wkt_crs(crs_str):
+            crs_str = clz.wkt_to_proj4(crs_str)
+        elif crs_str.startswith('EPSG:'):
+            epsg, epsg_code = crs_str.split(':')
+            crs_str = '+init=epsg:%s' % epsg_code
+        return clz.proj4_str_to_dict(crs_str)

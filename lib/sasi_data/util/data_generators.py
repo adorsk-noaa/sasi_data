@@ -523,3 +523,11 @@ def generate_map_layers_section(data_dir, section):
         os.mkdir(layer_dir)
         generate_map_layer(layer_id=layer['id'], layer_dir=layer_dir)
 
+def generate_polygon_coords(x=0, dx=1, y=0, dy=1):
+    coords = [[x, y], [x, y+dy], [x+dx, y+dy], [x+dx, y], [x, y]]
+    return coords
+
+def generate_multipolygon_wkt(**kwargs):
+    coords = generate_polygon_coords(**kwargs)
+    wkt = "MULTIPOLYGON(((%s)))" % (','.join(["%s %s" % (c[0], c[1]) for c in coords]))
+    return wkt

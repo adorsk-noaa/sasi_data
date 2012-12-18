@@ -24,7 +24,6 @@ class PyShapefileUtil(object):
     def get_shapefile_reader(clz, shapefile=""):
         return FionaShapefileReader(shapefile=shapefile)
 
-    #@TODO: change crs to be more flexible, generic.
     @classmethod
     def get_shapefile_writer(clz, shapefile="", driver='ESRI Shapefile',
                              crs=None, schema=None):

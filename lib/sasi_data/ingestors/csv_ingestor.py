@@ -61,6 +61,10 @@ class CSV_Ingestor(object):
                 value = raw_value
                 if processor:
                     value = processor(value)
+                else:
+                    # Convert empty strings to None.
+                    if value == '':
+                        value = None
                 self.set_target_attr(target, mapping['target'], value)
 
             self.after_record_mapped(record, target, counter)

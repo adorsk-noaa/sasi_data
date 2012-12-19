@@ -142,3 +142,12 @@ class PyGISUtil(GISUtil):
             epsg, epsg_code = crs_str.split(':')
             crs_str = '+init=epsg:%s' % epsg_code
         return clz.proj4_str_to_dict(crs_str)
+
+    @classmethod
+    def get_shape_mbr(clz, shape):
+        envelope = shape.envelope
+        coords = [c for c in envelope.exterior.coords]
+        xs = set([c[0] for c in coords])
+        ys = set([c[1] for c in coords])
+        mbr = (min(xs), min(ys), max(xs), max(ys))
+        return mbr

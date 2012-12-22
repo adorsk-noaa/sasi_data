@@ -3,7 +3,7 @@ from sasi_data.util import gis as gis_util
 from org.geotools.data import DataStoreFinder
 from org.geotools.feature.simple import (SimpleFeatureTypeBuilder, 
                                          SimpleFeatureBuilder)
-from org.geotools.data.shapefile import (ShapefileDataStoreFactory)
+from org.geotools.data.shapefile import ShapefileDataStore
 from org.geotools.data import DefaultTransaction
 from org.geotools.data.collection import ListFeatureCollection
 from com.vividsolutions.jts import geom as jts_geom
@@ -12,6 +12,8 @@ from java.lang import String, Integer, Double
 from java.util import HashMap
 from java.io import File
 import json
+import logging
+
 
 property_type_mappings = {
     'float': Double,
@@ -24,8 +26,6 @@ for geom_type in ['Point', 'LineString', 'Polygon']:
     multi_type = 'Multi' + geom_type
     for type_ in [geom_type, multi_type]:
         geom_type_mappings[type_] = getattr(jts_geom, type_)
-
-ds_factory = ShapefileDataStoreFactory()
 
 class JyShapefileReader(object):
     def __init__(self, shapefile=""):
@@ -104,9 +104,7 @@ class JyShapefileUtil(object):
             def __init__(self):
                 # Set up feature store.
                 url = File(shapefile).toURI().toURL()
-                ds_params = HashMap()
-                ds_params.put("url", url)
-                self.ds = ds_factory.createNewDataStore(ds_params)
+                self.ds = ShapefileDataStore(url)
                 self.ds.createSchema(feature_type)
                 type_name = self.ds.getTypeNames()[0]
                 self.fs = self.ds.getFeatureSource(type_name)
@@ -118,7 +116,7 @@ class JyShapefileUtil(object):
             def write(self, record):
                 # Process geometry.
                 geom = gis_util.geojson_to_shape(record['geometry'])
-                feature_builder.set('geometry', geom)
+                feature_builder.set('geometry', geom._jgeom)
 
                 # Process properties.
                 for prop, value in record.get('properties', {}).items():

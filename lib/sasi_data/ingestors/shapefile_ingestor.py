@@ -56,7 +56,7 @@ class Shapefile_Ingestor(object):
                 shape = gis_util.polygon_to_multipolygon(shape)
 
             if self.geom_attr and hasattr(obj, self.geom_attr):
-                setattr(obj, self.geom_attr, gis_util.shape_to_wkt(shape))
+                setattr(obj, self.geom_attr, gis_util.shape_to_wkb(shape))
 
             self.dao.save(obj, commit=False)
 

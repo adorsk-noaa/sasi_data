@@ -95,3 +95,17 @@ class JyGISUtil(GISUtil):
             # Otherwise assume WKT.
             else:
                 return CRS.parseWKT(crs)
+
+    @classmethod
+    def get_shape_mbr(clz, shape):
+        e = shape._jgeom.getEnvelope()
+        coords = e.getCoordinates()
+        min_coord = coords[0]
+        max_coord = coords[2]
+        mbr = (
+            min_coord.x,
+            min_coord.y,
+            max_coord.x,
+            max_coord.y,
+        )
+        return mbr

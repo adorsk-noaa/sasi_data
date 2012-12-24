@@ -1,4 +1,5 @@
-import sasi_data.ingestors as ingestors
+from sasi_data.ingestors.dao_csv_ingestor import DAO_CSV_Ingestor
+from sasi_data.ingestors.dao_shapefile_ingestor import DAO_Shapefile_Ingestor
 import sasi_data.util.gis as gis_util
 from sqlalchemy.sql import select
 from sqlalchemy.sql.expression import literal_column
@@ -116,7 +117,7 @@ class SASI_Ingestor(object):
             section_config = self.config.get('sections', {}).get(
                 section['id'], {})
 
-            ingestor = ingestors.DAO_CSV_Ingestor(
+            ingestor = DAO_CSV_Ingestor(
                 dao=self.dao, 
                 csv_file=csv_file, 
                 clazz=section['class'],
@@ -164,9 +165,9 @@ class SASI_Ingestor(object):
             section_config = self.config.get('sections', {}).get(
                 section['id'], {})
 
-            ingestor = ingestors.Shapefile_Ingestor(
+            ingestor = DAO_Shapefile_Ingestor(
                 dao=self.dao,
-                shp_file=shp_file,
+                shapefile=shp_file,
                 clazz=section['class'],
                 reproject_to=section.get('reproject_to'),
                 mappings=section['mappings'],
@@ -189,7 +190,7 @@ class SASI_Ingestor(object):
                 mappings.append({ 'source': attr, 'target': attr, })
             base_msg = "Ingesting '%s'..." % section['id']
             self.logger.info(base_msg)
-            ingestor = ingestors.DAO_CSV_Ingestor(
+            ingestor = DAO_CSV_Ingestor(
                 dao=self.dao, 
                 csv_file=csv_file,
                 clazz=self.dao.schema['sources']['Effort'],

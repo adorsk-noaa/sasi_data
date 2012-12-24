@@ -13,7 +13,7 @@ class Ingestor(object):
         self.clazz = clazz
 
         self.prepare_mappings()
-        self.prepare_reader()
+        self.prepare_records()
 
     def prepare_mappings(self):
         for i in range(len(self.mappings)):
@@ -24,7 +24,7 @@ class Ingestor(object):
                 self.mappings[i].setdefault(
                     'target', self.mappings[i]['source'])
 
-    def prepare_reader(self):
+    def prepare_records(self):
         pass
 
     def pre_ingest(self):
@@ -49,7 +49,7 @@ class Ingestor(object):
             self.logger.info("limiting to %s records" % self.limit)
             total = self.limit
         counter = 0
-        for record in self.reader:
+        for record in self.records:
             counter += 1
             if (counter % self.log_interval) == 0:
                 log_msg = "%d" % counter
@@ -81,4 +81,4 @@ class Ingestor(object):
         pass
 
     def post_ingest(self, counter):
-        self.csv_file.close()
+        pass

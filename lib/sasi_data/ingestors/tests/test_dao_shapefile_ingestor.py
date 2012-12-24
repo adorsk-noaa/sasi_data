@@ -3,13 +3,15 @@ from sasi_data.util.sa.tests.db_testcase import DBTestCase
 from sasi_data.ingestors.dao_shapefile_ingestor import (
     DAO_Shapefile_Ingestor)
 from sa_dao.orm_dao import ORM_DAO
-import shapefile
+from sasi_data.util import shapefile as shapefile_util
+from sasi_data.util import data_generators as dg
 from sqlalchemy import Table, Column, Integer, String
 from geoalchemy import GeometryColumn, MultiPolygon, GeometryDDL
 from sqlalchemy.ext.declarative import declarative_base
 import tempfile
 import os
 import time
+import logging
 
 
 class DAO_Shapefile_Ingestor_TestCase(DBTestCase):
@@ -36,20 +38,37 @@ class DAO_Shapefile_Ingestor_TestCase(DBTestCase):
 
         dao = ORM_DAO(session=self.session, schema=schema)
 
-        shp_dir = tempfile.mkdtemp()
-        shp_file = os.path.join(shp_dir, "test.shp")
-        w = shapefile.Writer()
-        w.shapeType = shapefile.POLYGON
-        w.field('S_ATTR1')
-        w.field('S_ATTR2', 'C', 40)
+        shapedir = tempfile.mkdtemp()
+        shapefile = os.path.join(shapedir, "test.shp")
+        schema = {
+            'geometry': 'MultiPolygon',
+            'properties': {
+                'S_ATTR1': 'int',
+                'S_ATTR2': 'str',
+            }
+        }
+        records = []
         for i in range(5):
-            parts = [
-                [i, i], [i, i+1], [i+1, i+1], [i+1, i]
-            ]
-            parts.append(parts[0])
-            w.poly([parts])
-            w.record(i, "s_attr2_%s" % i)
-        w.save(shp_file)
+            coords = [[dg.generate_polygon_coords(x=i, y=i)]]
+            records.append({
+                'id': i,
+                'geometry': {
+                    'type': 'MultiPolygon',
+                    'coordinates': coords
+                },
+                'properties': {
+                    'S_ATTR1': i,
+                    'S_ATTR2': str(i),
+                }
+            })
+        writer = shapefile_util.get_shapefile_writer(
+            shapefile=shapefile,
+            crs='EPSG:4326',
+            schema=schema,
+        )
+        for record in records:
+            writer.write(record)
+        writer.close()
 
         mappings = [
             {
@@ -66,13 +85,13 @@ class DAO_Shapefile_Ingestor_TestCase(DBTestCase):
 
         shp_ingestor = DAO_Shapefile_Ingestor(
             dao=dao,
-            shp_file=shp_file, 
+            shapefile=shapefile,
             clazz=TestClass, 
             mappings=mappings
         )
         shp_ingestor.ingest()
         result = dao.query({
-            'SELECT': ['{{TestClass}}']
+            'SELECT': ['__TestClass']
         })
 
         for r in result.all():

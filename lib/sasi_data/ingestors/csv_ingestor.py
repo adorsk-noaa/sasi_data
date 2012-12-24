@@ -9,12 +9,12 @@ class CSV_Ingestor(Ingestor):
         self.get_count = get_count
         Ingestor.__init__(self, **kwargs)
 
-    def prepare_reader(self):
+    def prepare_records(self):
         if isinstance(self.csv_file, str):
             self.csv_fh = open(self.csv_file, 'rb')
         else:
             self.csv_fh = self.csv_file
-        self.reader = csv.DictReader(self.csv_fh)
+        self.records = csv.DictReader(self.csv_fh)
 
     def pre_ingest(self):
         if self.get_count:
@@ -25,7 +25,7 @@ class CSV_Ingestor(Ingestor):
                 if self.limit and self.num_records == self.limit:
                     break
             self.csv_fh.seek(0)
-            self.reader = csv.DictReader(self.csv_fh)
+            self.records = csv.DictReader(self.csv_fh)
             self.logger.info("%s total records" % self.num_records)
 
     def get_record_attr(self, record, attr):

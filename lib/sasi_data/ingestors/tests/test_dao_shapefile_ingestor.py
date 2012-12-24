@@ -1,7 +1,7 @@
 import unittest
-from sasi_runner.util.sa.tests.db_testcase import DBTestCase
-from sasi_runner.util.sasi_data.ingest.shapefile_ingestor import (
-    Shapefile_Ingestor)
+from sasi_data.util.sa.tests.db_testcase import DBTestCase
+from sasi_data.ingestors.dao_shapefile_ingestor import (
+    DAO_Shapefile_Ingestor)
 from sa_dao.orm_dao import ORM_DAO
 import shapefile
 from sqlalchemy import Table, Column, Integer, String
@@ -12,7 +12,7 @@ import os
 import time
 
 
-class Shapefile_Ingestor_TestCase(DBTestCase):
+class DAO_Shapefile_Ingestor_TestCase(DBTestCase):
     def setUp(self):
         DBTestCase.setUp(self)
 
@@ -64,7 +64,7 @@ class Shapefile_Ingestor_TestCase(DBTestCase):
             },
         ]
 
-        shp_ingestor = Shapefile_Ingestor(
+        shp_ingestor = DAO_Shapefile_Ingestor(
             dao=dao,
             shp_file=shp_file, 
             clazz=TestClass, 

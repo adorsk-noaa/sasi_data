@@ -6,10 +6,10 @@ class DAO_CSV_Ingestor(CSV_Ingestor, DAO_Ingestor):
         CSV_Ingestor.__init__(self, **kwargs)
         DAO_Ingestor.__init__(self, **kwargs)
 
-    def post_record_mapped(self, *args, **kwargs)
+    def post_record_mapped(self, *args, **kwargs):
         CSV_Ingestor.post_record_mapped(self, *args, **kwargs)
-        DAOIngestor.post_record_mapped(self, *args, **kwargs)
+        DAO_Ingestor.post_record_mapped(self, *args, **kwargs)
 
     def post_ingest(self, *args, **kwargs):
         CSV_Ingestor.post_ingest(self, *args, **kwargs)
-        DAOIngestor.post_ingest(self, *args, **kwargs)
+        DAO_Ingestor.post_ingest(self, *args, **kwargs)

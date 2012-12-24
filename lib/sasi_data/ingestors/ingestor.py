@@ -3,7 +3,8 @@ import logging
 
 class Ingestor(object):
     def __init__(self, mappings={}, logger=logging.getLogger(),
-                 limit=None, count=None, log_interval=1000, clazz=None):
+                 limit=None, count=None, log_interval=1000, clazz=None, 
+                 **kwargs):
         self.logger = logger
         self.mappings = mappings
         self.limit = limit

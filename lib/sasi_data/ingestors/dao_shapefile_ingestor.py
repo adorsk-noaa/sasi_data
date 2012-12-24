@@ -6,10 +6,10 @@ class DAO_Shapefile_Ingestor(Shapefile_Ingestor, DAO_Ingestor):
         Shapefile_Ingestor.__init__(self, **kwargs)
         DAO_Ingestor.__init__(self, **kwargs)
 
-    def post_record_mapped(self, *args, **kwargs)
+    def post_record_mapped(self, *args, **kwargs):
         Shapefile_Ingestor.post_record_mapped(self, *args, **kwargs)
-        DAOIngestor.post_record_mapped(self, *args, **kwargs)
+        DAO_Ingestor.post_record_mapped(self, *args, **kwargs)
 
     def post_ingest(self, *args, **kwargs):
         Shapefile_Ingestor.post_ingest(self, *args, **kwargs)
-        DAOIngestor.post_ingest(self, *args, **kwargs)
+        DAO_Ingestor.post_ingest(self, *args, **kwargs)

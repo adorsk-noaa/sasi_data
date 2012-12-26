@@ -24,14 +24,14 @@ class SASI_Ingestor_TestCase(DBTestCase):
     def test_sasi_ingestor(self):
         self.data_dir = generate_data_dir()
         dao = SASI_SqlAlchemyDAO(session=self.session)
-        sasi_ingestor = SASI_Ingestor(dao=dao)
-        sasi_ingestor.ingest(data_dir=self.data_dir)
+        sasi_ingestor = SASI_Ingestor(data_dir=self.data_dir, dao=dao)
+        sasi_ingestor.ingest()
 
     def test_sasi_ingestor_nominal_efforts(self):
         self.data_dir = generate_data_dir(effort_model='nominal')
         dao = SASI_SqlAlchemyDAO(session=self.session)
-        sasi_ingestor = SASI_Ingestor(dao=dao)
-        sasi_ingestor.ingest(data_dir=self.data_dir)
+        sasi_ingestor = SASI_Ingestor(data_dir=self.data_dir, dao=dao)
+        sasi_ingestor.ingest()
 
 if __name__ == '__main__':
     unittest.main()

@@ -2,8 +2,10 @@ from sasi_data.ingestors.ingestor import Ingestor
 from sasi_data.ingestors.csv_reader import CSVReader
 from sasi_data.ingestors.shapefile_reader import ShapefileReader
 from sasi_data.ingestors.dao_writer import DAOWriter 
+from sasi_data.ingestors.dict_writer import DictWriter 
 from sasi_data.ingestors.mapper import ClassMapper
 import sasi_data.util.gis as gis_util
+from sasi_data.util.spatial_hash import SpatialHash
 from sqlalchemy.sql import select
 from sqlalchemy.sql.expression import literal_column
 import os
@@ -21,14 +23,15 @@ class LoggerLogHandler(logging.Handler):
         self.logger.log(record.levelno, self.format(record))
 
 class SASI_Ingestor(object):
-    def __init__(self, dao=None, logger=logging.getLogger(), config={}, **kwargs):
+    def __init__(self, data_dir=None, dao=None, logger=logging.getLogger(), config={}, **kwargs):
+        self.data_dir = data_dir
         self.dao = dao
         self.logger = logger
         self.config = config
 
-    def ingest(self, data_dir=None):
+    def ingest(self):
 
-        # CSV to DAO ingests.
+        # Define generic CSV ingests.
         dao_csv_sections = [
             {
                 'id': 'substrates',
@@ -112,107 +115,130 @@ class SASI_Ingestor(object):
         ]
 
         for section in dao_csv_sections:
-            base_msg = "Ingesting '%s'..." % section['id']
-            self.logger.info(base_msg)
-            csv_file = os.path.join(data_dir, section['id'], 'data',
-                                    "%s.csv" % section['id'])
+            self.ingest_csv_section(section)
 
-            section_config = self.config.get('sections', {}).get(
-                section['id'], {})
-
-            Ingestor(
-                reader=CSVReader(csv_file=csv_file),
-                processors=[
-                    ClassMapper(clazz=section['class'],
-                                mappings=section['mappings']),
-                    DAOWriter(dao=self.dao)
-                ],
-                logger=self.get_section_logger(section['id'], base_msg),
-                limit=section_config.get('limit'),
-            ).ingest()
-            self.dao.commit()
-
-        # Keep a shortcut to the model parameters.
+        # Convenience shortcuts.
         self.model_parameters = self.dao.query('__ModelParameters').fetchone()
+        self.geographic_crs = self.model_parameters.projection
 
-        # Shapefile data.
-        shp_sections = [
-            {
-                'id': 'habitats',
-                'class': self.dao.schema['sources']['Habitat'],
-                'reproject_to': 'EPSG:4326',
-                'mappings': [
-                    {'source': 'SUBSTRATE', 'target': 'substrate_id'},
-                    {'source': 'ENERGY', 'target': 'energy_id'},
-                    {'source': 'Z', 'target': 'z', 
-                     'processor': lambda value: -1.0 * float(value),
-                    },
-                    {'source': '__shape', 'target': 'geom', 
-                     'processor': gis_util.shape_to_wkt},
-                ]
-            },
-            {
-                'id': 'grid',
-                'class': self.dao.schema['sources']['Cell'],
-                'reproject_to': 'EPSG:4326',
-                'mappings': [
-                    {'source': 'TYPE', 'target': 'type'},
-                    {'source': 'TYPE_ID', 'target': 'type_id', 
-                     'processor': int
-                    },
-                    {'source': '__shape', 'target': 'geom', 
-                     'processor': gis_util.shape_to_wkt},
-                ]
-            }
-        ]
-        for section in shp_sections:
-            base_msg = "Ingesting '%s'..." % section['id']
-            self.logger.info(base_msg)
-            shp_file = os.path.join(data_dir, section['id'], 'data',
-                                    "%s.shp" % section['id'])
+        self.ingest_grid()
+        self.ingest_habitats()
+        self.ingest_efforts()
 
-            section_config = self.config.get('sections', {}).get(
-                section['id'], {})
+        self.post_ingest()
 
-            Ingestor(
-                reader=ShapefileReader(
-                    shp_file=shp_file,
-                    reproject_to=section.get('reproject_to'),
+    def ingest_csv_section(self, section):
+        base_msg = "Ingesting '%s'..." % section['id']
+        self.logger.info(base_msg)
+        csv_file = os.path.join(self.data_dir, section['id'], 'data',
+                                "%s.csv" % section['id'])
+
+        section_config = self.config.get('sections', {}).get(
+            section['id'], {})
+
+        Ingestor(
+            reader=CSVReader(csv_file=csv_file),
+            processors=[
+                ClassMapper(clazz=section['class'],
+                            mappings=section['mappings']),
+                DAOWriter(dao=self.dao)
+            ],
+            logger=self.get_section_logger(section['id'], base_msg),
+            limit=section_config.get('limit'),
+        ).ingest()
+        self.dao.commit()
+
+    def ingest_grid(self):
+        base_msg = "Ingesting 'grid'..."
+        self.logger.info(base_msg)
+        grid_logger = self.get_section_logger('grid', base_msg)
+
+        self.cells = {}
+        grid_file = os.path.join(self.data_dir, 'grid', 'data', "grid.shp")
+        grid_config = self.config.get('sections', {}).get('grid', {})
+
+        Ingestor(
+            reader=ShapefileReader(
+                shp_file=grid_file,
+                reproject_to='EPSG:4326',
+            ),
+            processors=[
+                ClassMapper(
+                    clazz=self.dao.schema['sources']['Cell'],
+                    mappings=[
+                        {'source': 'TYPE', 'target': 'type'},
+                        {'source': 'TYPE_ID', 'target': 'type_id'}, 
+                        {'source': '__shape', 'target': 'shape'}
+                    ]
                 ),
-                processors=[
-                    ClassMapper(clazz=section['class'],
-                                mappings=section['mappings']),
-                    DAOWriter(dao=self.dao)
-                ],
-                logger=self.get_section_logger(section['id'], base_msg),
-                limit=section_config.get('limit'),
-            ).ingest() 
-            self.dao.commit()
+                self.add_area_mbr,
+                DictWriter(dict_=self.cells),
+            ],
+            logger=grid_logger,
+            limit=grid_config.get('limit'),
+        ).ingest()
 
-        # Fishing efforts.
-        effort_dir = os.path.join(data_dir, 'fishing_efforts')
+    def ingest_habitats(self):
+        base_msg = "Ingesting 'habitats'..."
+        self.logger.info(base_msg)
+        habs_logger=self.get_section_logger('habs', base_msg)
+
+        self.habs = {}
+        self.habs_spatial_hash = SpatialHash(cell_size=.1)
+        habs_file = os.path.join(self.data_dir, 'habitats', 'data', "habitats.shp")
+        habs_config = self.config.get('sections', {}).get('habitats', {})
+
+        def add_to_habs_spatial_hash(data=None, **kwargs):
+            self.habs_spatial_hash.add_rect(data.mbr, data)
+            return data
+
+        def process_z(z):
+            if z is not None:
+                z = -1.0 * float(z)
+            return z
+
+        Ingestor(
+            reader=ShapefileReader(
+                shp_file=habs_file,
+                reproject_to='EPSG:4326',
+            ),
+            processors=[
+                ClassMapper(
+                    clazz=self.dao.schema['sources']['Habitat'],
+                    mappings=[
+                        {'source': 'SUBSTRATE', 'target': 'substrate_id'},
+                        {'source': 'ENERGY', 'target': 'energy_id'},
+                        {'source': 'Z', 'target': 'z', 'processor': process_z},
+                        {'source': '__shape', 'target': 'shape'}, 
+                    ]
+                ),
+                self.add_area_mbr,
+                add_to_habs_spatial_hash,
+                DictWriter(dict_=self.habs),
+            ],
+            logger=habs_logger,
+            limit=habs_config.get('limit'),
+        ).ingest()
+
+    def ingest_efforts(self):
+        effort_dir = os.path.join(self.data_dir, 'fishing_efforts')
         effort_model_file = os.path.join(effort_dir, 'model.csv')
         model_info_reader = csv.DictReader(open(effort_model_file, 'rb'))
         model_info = model_info_reader.next()
         self.effort_model_type = model_info.get('model_type')
-        if self.effort_model_type == 'realized':
-            csv_file = os.path.join(effort_dir, 'data', 'fishing_efforts.csv')
-            mappings = []
-            for attr in ['cell_id', 'time', 'swept_area', 'gear_id']:
-                mappings.append({ 'source': attr, 'target': attr, })
-            base_msg = "Ingesting '%s'..." % section['id']
-            self.logger.info(base_msg)
-            ingestor = Ingestor(
-                reader=CSVReader(csv_file=csv_file),
-                processors=[
-                    ClassMapper(clazz=self.dao.schema['sources']['Effort'],
-                                mappings=mappings),
-                    DAOWriter(dao=self.dao, commit_interval=1e4)
-                ],
-                logger=self.get_section_logger(section['id'], base_msg)
-            ).ingest()
 
-        self.post_ingest()
+        if self.effort_model_type == 'realized':
+            section = {
+                'id': 'fishing_efforts',
+                'class': self.dao.schema['sources']['Effort'],
+                'mappings': [
+                    'cell_id', 
+                    'time', 
+                    'swept_area', 
+                    'gear_id'
+                ]
+            }
+            self.ingest_csv_section(section)
 
     def get_section_logger(self, section_id, base_msg):
         logger = logging.getLogger("%s_%s" % (id(self), section_id))
@@ -224,8 +250,11 @@ class SASI_Ingestor(object):
         return logger
 
     def post_ingest(self):
-        self.calculate_habitat_areas()
+        # Calculate cell compositions and save cells to DAO.
         self.calculate_cell_compositions()
+        for cell in self.cells.values():
+            self.dao.save(cell, commit=False)
+        self.dao.commit()
 
         # Generate nominal efforts if effort_model is 'nominal'.
         if self.effort_model_type == 'nominal':
@@ -270,37 +299,14 @@ class SASI_Ingestor(object):
         logger.info(" Saving efforts...")
         self.dao.commit()
 
-    def calculate_habitat_areas(self, log_interval=1000):
-        base_msg = 'Calculating habitat areas...'
-        self.logger.info(base_msg)
-        logger = self.get_section_logger('habitat_areas', base_msg)
-
-        habitats = self.dao.query('__Habitat')
-        num_habitats = habitats.count()
-        counter = 0
-        for habitat in habitats:
-            counter += 1
-
-            if (counter % log_interval) == 0:
-                logger.info(" %d of %d (%.1f%%)" % (
-                    counter, num_habitats, 1.0 * counter/num_habitats* 100))
-
-            habitat.area = gis_util.get_shape_area(
-                gis_util.wkb_to_shape(str(habitat.geom.geom_wkb)), 
-                target_crs=str(self.model_parameters.projection)
-            )
-            self.dao.save(habitat, commit=False)
-        self.dao.commit()
-
     def calculate_cell_compositions(self, log_interval=1000):
         base_msg = 'Calculating cell compositions...'
         self.logger.info(base_msg)
         logger = self.get_section_logger('habitat_areas', base_msg)
 
-        cells = self.dao.query('__Cell')
-        num_cells = cells.count()
+        num_cells = len(self.cells)
         counter = 0
-        for cell in cells:
+        for cell in self.cells.values():
 
             counter += 1
             if (counter % log_interval) == 0:
@@ -310,54 +316,28 @@ class SASI_Ingestor(object):
             composition = {}
             cell.z = 0
 
-            # Calculate cell area.
-            cell.area = gis_util.get_shape_area(
-                gis_util.wkb_to_shape(str(cell.geom.geom_wkb)),
-                target_crs=str(self.model_parameters.projection)
-            )
-
-            # Calculate habitat composition.
-            intersection_query_def = {
-                'SELECT': '__Habitat',
-                'WHERE':  [
-                    [{'TYPE': 'ENTITY', 
-                      'EXPRESSION': ('func.st_intersects(__Habitat__geom,'
-                                     '__Cell__geom)')
-                     }, '==', True],
-                    [{'TYPE': 'ENTITY', 'EXPRESSION': '__Cell__id'}, 
-                     '==', cell.id]
-                ]
-            }
-
-            # For sqlite, use the session directly to get access to the index.
-            # Otherwise queries are too slow.
-            if self.dao.session.connection().engine.url.drivername == 'sqlite':
-                idx_sql = """
-                ROWID FROM SpatialIndex
-                WHERE f_table_name='habitat'
-                AND search_frame=cell_1.geom
-                """
-                subq = select([idx_sql])
-                q = self.dao.query(intersection_query_def, format_='query_obj')
-                q = q.filter(literal_column('habitat_1.id').in_(subq))
-                intersecting_habitats = q
-            else:
-                intersecting_habitats = self.dao.query(intersection_query_def)
-
-            for habitat in intersecting_habitats:
-                intersection = gis_util.get_intersection(
-                    gis_util.wkb_to_shape(str(habitat.geom.geom_wkb)),
-                    gis_util.wkb_to_shape(str(cell.geom.geom_wkb)),
-                )
+            # Get candidate intersecting habitats.
+            candidate_habs = self.habs_spatial_hash.items_for_rect(cell.mbr)
+            for hab in candidate_habs:
+                intersection = gis_util.get_intersection(cell.shape, hab.shape)
+                if not intersection:
+                    continue
                 intersection_area = gis_util.get_shape_area(
                     intersection,
-                    target_crs=str(self.model_parameters.projection)
+                    target_crs=self.geographic_crs,
                 )
-                hab_key = (habitat.substrate_id, habitat.energy_id,)
+                hab_key = (hab.substrate_id, hab.energy_id,)
                 pct_area = intersection_area/cell.area
                 composition[hab_key] = composition.get(hab_key, 0) + pct_area
-                cell.z += pct_area * habitat.z
+                cell.z += pct_area * hab.z
             cell.habitat_composition = composition
 
             self.dao.save(cell, commit=False)
         self.dao.commit()
+
+    # Define processor for adding area, mbr to geom entities.
+    def add_area_mbr(self, data=None, **kwargs):
+        data.area = gis_util.get_shape_area(
+            data.shape, target_crs=self.geographic_crs)
+        data.mbr = gis_util.get_shape_mbr(data.shape)
+        return data 

@@ -141,11 +141,12 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
         mappings['Effort'] = {
             'table': Table('effort', self.metadata,
                            Column('id', Integer, primary_key=True),
+                           Column('time', Integer),
                            Column('cell_id', Integer),
                            Column('gear_id', String),
-                           Column('swept_area', Float),
+                           Column('a', Float),
                            Column('hours_fished', Float),
-                           Column('time', Integer),
+                           Column('value', Float),
                           ),
         }
 

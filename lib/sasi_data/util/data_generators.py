@@ -173,7 +173,7 @@ def generate_efforts(cells=[], gears=[], t0=0, tf=1, dt=1):
             for g in gears:
                 efforts.append(models.Effort(
                     cell_id=cell.id,
-                    gear_id: g.id,
+                    gear_id=g.id,
                     time=t,
                     a=cell_area/len(gears),
                 ))
@@ -450,15 +450,18 @@ def generate_data_dir(data_dir="", data={}, time_start=0, time_end=10,
     }
 
     if effort_model == 'realized':
-        data.setdefault('fishing_efforts', self.generate_efforts(
+        data.setdefault('fishing_efforts', generate_efforts(
             cells=data['grid'], gears=data['gears'], t0=time_start, tf=time_end,
             dt=time_step))
+
+        fields = ['cell_id', 'time', 'a', 'gear_id', 'value', 'hours_fished']
         sections['fishing_efforts'] = {
             'id': 'fishing_efforts',
             'type': 'fishing_efforts',
             'model_type': 'realized',
-            'fields': ['cell_id', 'time', 'swept_area', 'gear_id'],
-            'data': data['fishing_efforts'],
+            'fields': fields,
+            'data': [dict(zip(fields, [getattr(e, f, None) for f in fields]))
+                     for e in data['fishing_efforts']]
         }
     elif effort_model == 'nominal':
         sections['fishing_efforts'] = {

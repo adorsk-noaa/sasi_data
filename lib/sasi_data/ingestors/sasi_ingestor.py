@@ -276,6 +276,7 @@ class SASI_Ingestor(object):
 
         cells = self.dao.query('__Cell', format_='query_obj')
         gears = self.dao.query('__Gear', format_='query_obj')
+        num_gears = gears.count()
         total_efforts = len(tsteps) * cells.count() * gears.count()
 
         counter = 0
@@ -293,7 +294,7 @@ class SASI_Ingestor(object):
                     effort = EffortClass(
                         cell_id=cell.id,
                         time=t,
-                        swept_area=cell.area,
+                        a=cell.area/num_gears,
                         gear_id=gear.id
                     )
                     self.dao.save(effort, commit=False)

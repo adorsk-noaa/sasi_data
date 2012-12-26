@@ -29,12 +29,14 @@ class FakeGeom(object):
     def __init__(self, wkb):
         self.geom_wkb = wkb
 
-def generate_cell(id=0, x0=0, x1=1, y0=0, y1=1, geom_type='MultiPolygon'):
+def generate_cell(id=0, x0=0, x1=1, y0=0, y1=1, geom_type='MultiPolygon',
+                  **kwargs):
     geojson = generate_polygon_geojson(id=id, x0=x0, y0=y0, x1=x1, y1=y1,
                                        geom_type=geom_type)
     return models.Cell(
         id=id,
-        geom = FakeGeom(gis_util.geojson_to_wkb(geojson))
+        geom=FakeGeom(gis_util.geojson_to_wkb(geojson)),
+        **kwargs
     )
 
 def generate_habitat(id=0, x0=0, x1=1, y0=0, y1=1, geom_type='MultiPolygon',
@@ -43,7 +45,7 @@ def generate_habitat(id=0, x0=0, x1=1, y0=0, y1=1, geom_type='MultiPolygon',
                                        geom_type=geom_type)
     return models.Habitat(
         id=id,
-        geom = FakeGeom(gis_util.geojson_to_wkb(geojson)),
+        geom=FakeGeom(gis_util.geojson_to_wkb(geojson)),
         **kwargs
     )
 

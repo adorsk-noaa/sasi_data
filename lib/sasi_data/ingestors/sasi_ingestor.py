@@ -22,6 +22,13 @@ class LoggerLogHandler(logging.Handler):
     def emit(self, record):
         self.logger.log(record.levelno, self.format(record))
 
+def empty_float(value):
+    """ Return 0 for 'None' or empty """
+    if value is None or value == '':
+        return 0.0
+    else:
+        return float(value)
+
 class SASI_Ingestor(object):
     def __init__(self, data_dir=None, dao=None, logger=logging.getLogger(),
                  config={}, hash_cell_size=.1, **kwargs):
@@ -235,8 +242,10 @@ class SASI_Ingestor(object):
                 'mappings': [
                     'cell_id', 
                     'time', 
-                    'swept_area', 
-                    'gear_id'
+                    'gear_id',
+                    {'source': 'a', 'processor': empty_float},
+                    {'source': 'hours_fished', 'processor': empty_float},
+                    {'source': 'value', 'processor': empty_float},
                 ]
             }
             self.ingest_csv_section(section)

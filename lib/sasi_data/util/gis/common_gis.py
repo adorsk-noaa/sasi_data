@@ -40,6 +40,10 @@ class GISUtil(object):
         return clz.shape_to_wkb(clz.geojson_to_shape(geojson))
 
     @classmethod
+    def wkb_to_geojson(clz, wkb):
+        return clz.shape_to_geojson(clz.wkb_to_shape(wkb))
+
+    @classmethod
     def geojson_to_wkt(clz, geojson):
         return clz.shape_to_wkt(geojson_to_shape(geojson))
 

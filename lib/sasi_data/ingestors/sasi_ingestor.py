@@ -23,10 +23,12 @@ class LoggerLogHandler(logging.Handler):
         self.logger.log(record.levelno, self.format(record))
 
 class SASI_Ingestor(object):
-    def __init__(self, data_dir=None, dao=None, logger=logging.getLogger(), config={}, **kwargs):
+    def __init__(self, data_dir=None, dao=None, logger=logging.getLogger(),
+                 config={}, hash_cell_size=.1, **kwargs):
         self.data_dir = data_dir
         self.dao = dao
         self.logger = logger
+        self.hash_cell_size = hash_cell_size
         self.config = config
 
     def ingest(self):
@@ -166,8 +168,7 @@ class SASI_Ingestor(object):
                 ClassMapper(
                     clazz=self.dao.schema['sources']['Cell'],
                     mappings=[
-                        {'source': 'TYPE', 'target': 'type'},
-                        {'source': 'TYPE_ID', 'target': 'type_id'}, 
+                        {'source': 'ID', 'target': 'id'}, 
                         {'source': '__shape', 'target': 'shape'}
                     ]
                 ),
@@ -184,7 +185,7 @@ class SASI_Ingestor(object):
         habs_logger=self.get_section_logger('habs', base_msg)
 
         self.habs = {}
-        self.habs_spatial_hash = SpatialHash(cell_size=.1)
+        self.habs_spatial_hash = SpatialHash(cell_size=self.hash_cell_size)
         habs_file = os.path.join(self.data_dir, 'habitats', 'data', "habitats.shp")
         habs_config = self.config.get('sections', {}).get('habitats', {})
 
@@ -307,7 +308,6 @@ class SASI_Ingestor(object):
         num_cells = len(self.cells)
         counter = 0
         for cell in self.cells.values():
-
             counter += 1
             if (counter % log_interval) == 0:
                 logger.info(" %d of %d (%.1f%%)" % (

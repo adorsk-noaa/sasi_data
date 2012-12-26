@@ -8,29 +8,98 @@ import zipfile
 import json
 
 
+def frange(start, end=None, inc=None):
+    "A range function, that does accept float increments..."
+    if end == None:
+        end = start + 0.0
+        start = 0.0
+    if inc == None:
+        inc = 1.0
+    L = []
+    while 1:
+        next = start + len(L) * inc
+        if inc > 0 and next >= end:
+            break
+        elif inc < 0 and next <= end:
+            break
+        L.append(next)
+    return L
+
 class FakeGeom(object):
     def __init__(self, wkb):
         self.geom_wkb = wkb
 
-def generate_cell_grid(x0=0, xf=3, y0=0, yf=3, dx=1, dy=1, cell_type="100km"):
+def generate_cell(id=0, x0=0, x1=1, y0=0, y1=1, geom_type='MultiPolygon'):
+    geojson = generate_polygon_geojson(id=id, x0=x0, y0=y0, x1=x1, y1=y1,
+                                       geom_type=geom_type)
+    return models.Cell(
+        id=id,
+        geom = FakeGeom(gis_util.geojson_to_wkb(geojson))
+    )
+
+def generate_habitat(id=0, x0=0, x1=1, y0=0, y1=1, geom_type='MultiPolygon',
+                     **kwargs):
+    geojson = generate_polygon_geojson(id=id, x0=x0, y0=y0, x1=x1, y1=y1, 
+                                       geom_type=geom_type)
+    return models.Habitat(
+        id=id,
+        geom = FakeGeom(gis_util.geojson_to_wkb(geojson)),
+        **kwargs
+    )
+
+def generate_polygon_geojson(id=None, x0=0, x1=1, y0=0, y1=1,
+                             geom_type='MultiPolygon'):
+    coords = [generate_polygon_coords(x0=x0, y0=y0, x1=x1, y1=y1)]
+    if geom_type == 'MultiPolygon':
+        coords = [coords]
+    return {
+        'type': geom_type,
+        'coordinates': coords
+    }
+
+def generate_cell_grid(x0=0, xf=3, y0=0, yf=3, dx=1, dy=1,
+                       geom_type='MultiPolygon'):
     grid = []
     cell_counter = 1
-    for x in range(x0, xf, dx):
-        for y in range(y0, yf, dy):
-            coords = [[x, y], [x, y+dy], [x+dx, y+dy], [x+dx, y], [x, y]]
-            geojson = {
-                "type": "MultiPolygon",
-                "coordinates": [[coords]]
-            }
-            geom = FakeGeom(gis_util.geojson_to_wkb(geojson))
-            grid.append(models.Cell(
+    for x in frange(x0, xf, dx):
+        for y in frange(y0, yf, dy):
+            cell = generate_cell(
                 id=cell_counter,
-                type=cell_type,
-                type_id=cell_counter,
-                area=float(cell_counter),
-                geom=geom
-            ))
+                x0=x,
+                x1=x+dx,
+                y0=y,
+                y1=y+dy,
+                geom_type=geom_type
+            )
+            grid.append(cell)
             cell_counter += 1
+    return grid
+
+def generate_habitat_grid(x0=0, xf=3, y0=0, yf=3, dx=1, dy=1,
+                       geom_type='MultiPolygon', substrates=None, energys=None):
+    grid = []
+    i = 1
+    for x in frange(x0, xf, dx):
+        for y in frange(y0, yf, dy):
+            substrate_id = None
+            if substrates:
+                substrate_id = substrates[i % len(substrates)].id
+            energy_id = None
+            if energys:
+                energy_id = energys[i % len(energys)].id
+            hab = generate_habitat(
+                id=i,
+                x0=x,
+                x1=x+dx,
+                y0=y,
+                y1=y+dy,
+                geom_type=geom_type,
+                substrate_id=substrate_id,
+                energy_id=energy_id,
+                z=i * 10.0,
+            )
+            grid.append(hab)
+            i += 1
     return grid
 
 def generate_feature_categories(n=2):
@@ -205,19 +274,49 @@ MAP
 END # MAP
 """ % (layer_id, layer_id, layer_id)
 
-def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1,
-                      effort_model='realized', to_zipfile=False):
+def generate_data_dir(data_dir="", data={}, time_start=0, time_end=10, 
+                      time_step=1, effort_model='realized', 
+                      default_grid_size=2, to_zipfile=False):
     if not data_dir:
         data_dir = tempfile.mkdtemp(prefix="tst.")
 
     # Generate data and sections for generic sections.
-    data = {}
-    data['substrates'] = generate_substrates()
-    data['energys'] = generate_energys()
-    data['feature_categories'] = generate_feature_categories()
-    data['features'] = generate_features(
-        feature_categories=data['feature_categories'])
-    data['gears'] = generate_gears()
+    data.setdefault('substrates', generate_substrates())
+    data.setdefault('energys', generate_energys())
+    data.setdefault('feature_categories', generate_feature_categories())
+    data.setdefault('features', generate_features(
+        feature_categories=data['feature_categories']))
+    data.setdefault('gears', generate_gears())
+
+    # Generate VA data.
+    if not data.get('va'):
+        va_data = []
+        i = 0
+        for s in data['substrates']:
+            for e in data['energys']:
+                for f in data['features']:
+                    for g in data['gears']:
+                        va_data.append({
+                            'Gear ID': g.id,
+                            'Feature ID': f.id,
+                            'Substrate ID': s.id,
+                            'Energy': e.id,
+                            'S': (i % 3) + 1,
+                            'R': (i % 3) + 1,
+                        })
+                        i += 1
+        data['va'] = va_data
+
+    # Generate grid data.
+    data.setdefault('grid', generate_cell_grid(
+        xf=default_grid_size, yf=default_grid_size))
+
+    # Generate habitat data.
+    data.setdefault('habitats', generate_habitat_grid(
+        x0=-.5, xf=default_grid_size +.5, y0=-.5, yf=default_grid_size + .5,
+        substrates=data['substrates'],
+        energys=data['energys'],
+    ))
 
     sections = {}
     sections['substrates'] = {
@@ -250,12 +349,14 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1,
         'fields': ['id', 'label', 'description'],
     }
 
-    for section_name, section_data in data.items():
+    for section_name in ['substrates', 'energys', 'feature_categories',
+                         'features', 'gears']:
+        section_data = data[section_name]
         section = sections[section_name]
         section['data'] = []
         for obj in section_data:
             section['data'].append(dict(
-                [(attr, getattr(obj, attr)) for attr in section['fields']]
+                [(attr, getattr(obj, attr, None)) for attr in section['fields']]
             ))
 
     sections['model_parameters'] = {
@@ -272,57 +373,29 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1,
                   'projection': None}]
     }
 
-
-    va_data = []
-    i = 0
-    for s in sections['substrates']['data']:
-        for e in sections['energys']['data']:
-            for f in sections['features']['data']:
-                for g in sections['gears']['data']:
-                    va_data.append({
-                        'Gear ID': g['id'],
-                        'Feature ID': f['id'],
-                        'Substrate ID': s['id'],
-                        'Energy': e['id'],
-                        'S': (i % 3) + 1,
-                        'R': (i % 3) + 1,
-                    })
-                    i += 1
     sections['va'] = {
         'id': 'va',
         'type': 'csv',
         'fields': ['Gear ID', 'Feature ID', 'Substrate ID', 'Energy', 
                    'S', 'R'],
-        'data': va_data
+        'data': data['va'],
     }
 
-    grid_size = 3
-
+    # Shape sections.
     hab_records = []
-    i = 0
-    for j in range(-2, grid_size + 2):
-        for k in range(-2, grid_size + 2):
-            x = j * 2
-            y = k * 2
-            substrate_data = sections['substrates']['data']
-            substrate = substrate_data[i % len(substrate_data)]['id']
-            energy_data = sections['energys']['data']
-            energy = energy_data[i % len(energy_data)]['id']
-            z = -1.0 * i
-            coords = [[x,y], [x, y+2], [x+2, y+2], [x+2, y], [x,y]]
-            hab_records.append({
-                'id': i,
-                'geometry': {
-                    'type': 'MultiPolygon',
-                    'coordinates': [[coords]]
-                },
-                'properties': {
-                    'SUBSTRATE': substrate,
-                    'ENERGY': energy,
-                    'Z': z
-                }
-            })
-            i += 1
+    hab_counter = 0
+    for hab in data['habitats']:
+        hab_records.append({
+            'id': hab_counter,
+            'geometry': json.loads(
+                gis_util.wkb_to_geojson(hab.geom.geom_wkb)),
+            'properties': {
+                'SUBSTRATE': getattr(hab, 'substrate_id', ''),
+                'ENERGY': getattr(hab, 'energy_id', ''),
+                'Z': getattr(hab, 'z', 0.0),
+            }
+        })
+        hab_counter += 1
     sections['habitats'] = {
         'id': 'habitats',
         'type': 'shp',
@@ -338,32 +411,24 @@ def generate_data_dir(data_dir="", time_start=0, time_end=10, time_step=1,
     }
 
     cell_records = []
-    i = 0
-    for j in range(grid_size):
-        for k in range(grid_size):
-            x = (j * 2) + 1
-            y = (k * 2) + 1
-            coords = [[x,y], [x, y+2], [x+2, y+2], [x+2, y], [x,y]]
-            cell_records.append({
-                'id': i,
-                'geometry': {
-                    'type': 'MultiPolygon',
-                    'coordinates': [[coords]]
-                },
-                'properties': {
-                    'TYPE_ID': "%s" % i,
-                    'TYPE': "km100"
-                }
-            })
-            i += 1
+    cell_counter = 0
+    for cell in data['grid']:
+        cell_records.append({
+            'id': cell_counter,
+            'geometry': json.loads(
+                gis_util.wkb_to_geojson(cell.geom.geom_wkb)),
+            'properties': {
+                'ID': str(cell_counter),
+            }
+        })
+        cell_counter += 1
     sections['grid'] = {
         'id': 'grid',
         'type': 'shp',
         'schema': {
             'geometry': 'MultiPolygon',
             'properties': {
-                'TYPE': 'str',
-                'TYPE_ID': 'str',
+                'ID': 'str',
             }
         },
         'records': cell_records
@@ -450,7 +515,7 @@ def generate_shp_section(data_dir, section):
     shpfile = os.path.join(section_data_dir, "%s.shp" % section['id'])
     w = shapefile_util.get_shapefile_writer(
         shapefile=shpfile, 
-        crs={'no_defs': True, 'ellps': 'WGS84', 'datum': 'WGS84', 'proj': 'longlat'},
+        crs='EPSG:4326',
         schema=section['schema'],
     )
     for record in section['records']:
@@ -523,8 +588,8 @@ def generate_map_layers_section(data_dir, section):
         os.mkdir(layer_dir)
         generate_map_layer(layer_id=layer['id'], layer_dir=layer_dir)
 
-def generate_polygon_coords(x=0, dx=1, y=0, dy=1):
-    coords = [[x, y], [x, y+dy], [x+dx, y+dy], [x+dx, y], [x, y]]
+def generate_polygon_coords(x0=0, y0=0, x1=1, y1=1):
+    coords = [[x0, y0], [x0, y1], [x1, y1], [x1, y0], [x0, y0]]
     return coords
 
 def generate_multipolygon_wkt(**kwargs):

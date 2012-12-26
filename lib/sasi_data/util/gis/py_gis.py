@@ -29,6 +29,8 @@ class PyGISUtil(GISUtil):
             proj_shape = clz.reproject_multipolygon(shape, crs1, crs2)
         elif isinstance(shape, geometry.Point):
             proj_shape = clz.reproject_point(shape, crs1, crs2)
+        elif isinstance(shape, geometry.LineString):
+            proj_shape = clz.reproject_linestring(shape, crs1, crs2)
         return proj_shape
 
     @classmethod

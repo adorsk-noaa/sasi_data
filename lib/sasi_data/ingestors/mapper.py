@@ -4,7 +4,6 @@ from sasi_data.ingestors.processor import Processor
 class Mapper(Processor):
     def __init__(self, mappings=[], **kwargs):
         Processor.__init__(self, **kwargs)
-        self.key = key
         self.mappings = self.prepare_mappings(mappings)
 
     def prepare_mappings(self, mappings=[]):
@@ -19,10 +18,10 @@ class Mapper(Processor):
             prepared_mappings.append(prepared_mapping)
         return prepared_mappings
 
-    def process(self, record, results={}, counter):
-        target = self.initialize_target()
+    def process(self, data={}, counter=None, **kwargs):
+        target = self.initialize_target(data, counter)
         for mapping in self.mappings:
-            raw_value = record.get(mapping['source'])
+            raw_value = data.get(mapping['source'])
             if raw_value == None and mapping.get('default'):
                 raw_value = mapping['default']
             processor = mapping.get('processor')
@@ -30,24 +29,24 @@ class Mapper(Processor):
             if processor:
                 value = processor(value)
             self.set_target_attr(target, mapping['target'], value)
-        results[self.key] = target
+        return target
 
-    def initialize_target(self, record, counter):
+    def initialize_target(self, data, counter):
         pass
-    def set_target_attr(target, attr, value):
+    def set_target_attr(self, target, attr, value):
         pass
 
 class ClassMapper(Mapper):
     def __init__(self, clazz=None, **kwargs):
-        Mappper.__init__(self, **kwargs)
+        Mapper.__init__(self, **kwargs)
         self.clazz = clazz
-    def initialize_target(self, record, counter):
+    def initialize_target(self, data, counter):
         return self.clazz()
-    def set_target_attr(target,attr, value):
+    def set_target_attr(self, target,attr, value):
         setattr(target, attr, value)
 
 class DictMapper(Mapper):
-    def initialize_target(self, record, counter):
+    def initialize_target(self, data, counter):
         return {}
-    def set_target_attr(target,attr, value):
+    def set_target_attr(self, target, attr, value):
         target.set(attr, value)

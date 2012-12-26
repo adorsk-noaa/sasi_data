@@ -10,6 +10,9 @@ class FionaShapefileReader(object):
         self.crs = gis_util.proj4_to_wkt(self.c.crs)
         self.shapetype = self.c.schema['geometry'].upper()
 
+    def get_crs(self):
+        return self.crs
+
     def get_fields(self):
         return self.c.schema['properties'].keys()
 

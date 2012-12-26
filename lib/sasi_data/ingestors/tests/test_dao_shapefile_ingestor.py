@@ -1,9 +1,12 @@
 import unittest
 from sasi_data.util.sa.tests.db_testcase import DBTestCase
-from sasi_data.ingestors.dao_shapefile_ingestor import (
-    DAO_Shapefile_Ingestor)
+from sasi_data.ingestors.ingestor import Ingestor
+from sasi_data.ingestors.dao_writer import DAOWriter 
+from sasi_data.ingestors.shapefile_reader import ShapefileReader
+from sasi_data.ingestors.mapper import ClassMapper
 from sa_dao.orm_dao import ORM_DAO
 from sasi_data.util import shapefile as shapefile_util
+import sasi_data.util.gis as gis_util
 from sasi_data.util import data_generators as dg
 from sqlalchemy import Table, Column, Integer, String
 from geoalchemy import GeometryColumn, MultiPolygon, GeometryDDL
@@ -76,25 +79,29 @@ class DAO_Shapefile_Ingestor_TestCase(DBTestCase):
                 'target': 'attr1',
                 'processor': lambda value: int(value) * 10
             },
-
             {
                 'source': 'S_ATTR2', 
                 'target': 'attr2',
             },
+            {
+                'source': '__shape',
+                'target': 'geom',
+                'processor': gis_util.shape_to_wkt,
+            }
         ]
 
-        shp_ingestor = DAO_Shapefile_Ingestor(
-            dao=dao,
-            shapefile=shapefile,
-            clazz=TestClass, 
-            mappings=mappings
-        )
-        shp_ingestor.ingest()
-        result = dao.query({
+        Ingestor(
+            reader=ShapefileReader(shp_file=shapefile),
+            processors=[
+                ClassMapper(clazz=TestClass, mappings=mappings),
+                DAOWriter(dao=dao, commit=False),
+            ]
+        ).ingest()
+        results = dao.query({
             'SELECT': ['__TestClass']
-        })
+        }).all()
 
-        for r in result.all():
+        for r in results:
             print r.attr1, r.attr2, dao.session.scalar(r.geom.wkt)
 
 

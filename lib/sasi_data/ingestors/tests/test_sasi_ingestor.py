@@ -4,6 +4,12 @@ from sasi_data.ingestors.sasi_ingestor import SASI_Ingestor
 from sasi_data.util.data_generators import generate_data_dir
 from sasi_data.dao.sasi_sa_dao import SASI_SqlAlchemyDAO
 import shutil
+import logging
+
+
+logger = logging.getLogger()
+logger.addHandler(logging.StreamHandler())
+logger.setLevel(logging.INFO)
 
 
 class SASI_Ingestor_TestCase(DBTestCase):

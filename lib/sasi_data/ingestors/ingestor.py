@@ -6,14 +6,18 @@ class Ingestor(object):
                  limit=None, log_interval=1000, **kwargs):
         self.logger = logger
         self.reader = reader
-        self.mapper = mapper
+        self.processors = processors
         self.limit = limit
         self.log_interval = log_interval
 
     def ingest(self):
-        self.pre_ingest()
         counter = 0
-        num_records = self.reader.size
+        self.logger.info("Counting total number of records...")
+        num_records = self.reader.get_size(limit=self.limit)
+        self.logger.info("%s total records." % num_records)
+        if self.limit is not None:
+            self.logger.info("Limiting to %s records" % self.limit)
+            num_records = min(num_records, self.limit)
         for record in self.reader.get_records():
             counter += 1
             if (counter % self.log_interval) == 0:
@@ -23,11 +27,14 @@ class Ingestor(object):
                         num_records, 1.0 * counter/num_records* 100)
                 self.logger.info(log_msg)
 
-            results = {}
+            # Send record through processor chain,
+            # passing previous result to next item in the chain.
+            data = record
             for processor in self.processors:
-                processor.process(record, results, counter)
+                data = processor.process(data=data, counter=counter,
+                                         total=num_records)
 
-            if self.limit is not None and counter == self.limit:
+            if counter >= num_records:
                 break
 
         self.reader.close()

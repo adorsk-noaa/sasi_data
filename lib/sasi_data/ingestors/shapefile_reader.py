@@ -19,7 +19,7 @@ class ShapefileReader(object):
         for geojson in self.reader.records():
             record = {}
             record.update(geojson.get('properties', {}))
-            shape = gis_util.geojson_to_shape(geojson['geometry']))
+            shape = gis_util.geojson_to_shape(geojson['geometry'])
             if self.reproject_to:
                 shape = gis_util.reproject_shape(
                     shape, self.reader.get_crs(), self.reproject_to)
@@ -28,8 +28,7 @@ class ShapefileReader(object):
             record['__shape'] = shape
             yield record
 
-    @property
-    def size(self):
+    def get_size(self, **kwargs):
         if not hasattr(self, '_size'):
             self._size = self.reader.size
         return self._size

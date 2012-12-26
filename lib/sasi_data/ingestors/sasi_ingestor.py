@@ -1,5 +1,8 @@
-from sasi_data.ingestors.dao_csv_ingestor import DAO_CSV_Ingestor
-from sasi_data.ingestors.dao_shapefile_ingestor import DAO_Shapefile_Ingestor
+from sasi_data.ingestors.ingestor import Ingestor
+from sasi_data.ingestors.csv_reader import CSVReader
+from sasi_data.ingestors.shapefile_reader import ShapefileReader
+from sasi_data.ingestors.dao_writer import DAOWriter 
+from sasi_data.ingestors.mapper import ClassMapper
 import sasi_data.util.gis as gis_util
 from sqlalchemy.sql import select
 from sqlalchemy.sql.expression import literal_column
@@ -117,15 +120,17 @@ class SASI_Ingestor(object):
             section_config = self.config.get('sections', {}).get(
                 section['id'], {})
 
-            ingestor = DAO_CSV_Ingestor(
-                dao=self.dao, 
-                csv_file=csv_file, 
-                clazz=section['class'],
-                mappings=section['mappings'],
+            Ingestor(
+                reader=CSVReader(csv_file=csv_file),
+                processors=[
+                    ClassMapper(clazz=section['class'],
+                                mappings=section['mappings']),
+                    DAOWriter(dao=self.dao)
+                ],
                 logger=self.get_section_logger(section['id'], base_msg),
                 limit=section_config.get('limit'),
-            ) 
-            ingestor.ingest()
+            ).ingest()
+            self.dao.commit()
 
         # Keep a shortcut to the model parameters.
         self.model_parameters = self.dao.query('__ModelParameters').fetchone()
@@ -141,7 +146,9 @@ class SASI_Ingestor(object):
                     {'source': 'ENERGY', 'target': 'energy_id'},
                     {'source': 'Z', 'target': 'z', 
                      'processor': lambda value: -1.0 * float(value),
-                    }
+                    },
+                    {'source': '__shape', 'target': 'geom', 
+                     'processor': gis_util.shape_to_wkt},
                 ]
             },
             {
@@ -153,6 +160,8 @@ class SASI_Ingestor(object):
                     {'source': 'TYPE_ID', 'target': 'type_id', 
                      'processor': int
                     },
+                    {'source': '__shape', 'target': 'geom', 
+                     'processor': gis_util.shape_to_wkt},
                 ]
             }
         ]
@@ -165,17 +174,20 @@ class SASI_Ingestor(object):
             section_config = self.config.get('sections', {}).get(
                 section['id'], {})
 
-            ingestor = DAO_Shapefile_Ingestor(
-                dao=self.dao,
-                shapefile=shp_file,
-                clazz=section['class'],
-                reproject_to=section.get('reproject_to'),
-                mappings=section['mappings'],
+            Ingestor(
+                reader=ShapefileReader(
+                    shp_file=shp_file,
+                    reproject_to=section.get('reproject_to'),
+                ),
+                processors=[
+                    ClassMapper(clazz=section['class'],
+                                mappings=section['mappings']),
+                    DAOWriter(dao=self.dao)
+                ],
                 logger=self.get_section_logger(section['id'], base_msg),
                 limit=section_config.get('limit'),
-                commit_interval=None,
-            ) 
-            ingestor.ingest()
+            ).ingest() 
+            self.dao.commit()
 
         # Fishing efforts.
         effort_dir = os.path.join(data_dir, 'fishing_efforts')
@@ -190,18 +202,15 @@ class SASI_Ingestor(object):
                 mappings.append({ 'source': attr, 'target': attr, })
             base_msg = "Ingesting '%s'..." % section['id']
             self.logger.info(base_msg)
-            ingestor = DAO_CSV_Ingestor(
-                dao=self.dao, 
-                csv_file=csv_file,
-                clazz=self.dao.schema['sources']['Effort'],
-                mappings=mappings,
+            ingestor = Ingestor(
+                reader=CSVReader(csv_file=csv_file),
+                processors=[
+                    ClassMapper(clazz=self.dao.schema['sources']['Effort'],
+                                mappings=mappings),
+                    DAOWriter(dao=self.dao, commit_interval=1e4)
+                ],
                 logger=self.get_section_logger(section['id'], base_msg)
-            )
-            ingestor.ingest()
-
-        # Write to DB.
-        self.logger.info('Saving ingested data...')
-        self.dao.commit()
+            ).ingest()
 
         self.post_ingest()
 

@@ -1,10 +1,9 @@
 import csv
 
 
-class CSV_Reader(object):
+class CSVReader(object):
     def __init__(self, csv_file=None, **kwargs):
         self.csv_file = csv_file
-        self.get_count = get_count
         self.csv_fh = self.get_csv_fh()
 
     def get_csv_fh(self):
@@ -14,13 +13,16 @@ class CSV_Reader(object):
             return self.csv_file
 
     def get_records(self):
-        return csv.DictReader(self.csv_fh())
+        return csv.DictReader(self.csv_fh)
 
-    @property
-    def size(self):
-        if not hasattr(self, '_size'):
-            self._size = len([r for r in self.csv.reader(self.get_csv_fh())])
-        return self._size
+    def get_size(self, limit=None, **kwargs):
+        size = 0
+        for r in csv.reader(self.csv_fh):
+            size += 1
+            if limit is not None and (size % limit) == 0:
+                break
+        self.csv_fh.seek(0)
+        return size
 
     def close(self):
         self.csv_fh.close()

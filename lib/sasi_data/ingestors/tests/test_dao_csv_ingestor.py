@@ -1,6 +1,9 @@
 import unittest
 from sasi_data.util.sa.tests.db_testcase import DBTestCase
-from sasi_data.ingestors.dao_csv_ingestor import DAO_CSV_Ingestor
+from sasi_data.ingestors.ingestor import Ingestor
+from sasi_data.ingestors.dao_writer import DAOWriter 
+from sasi_data.ingestors.csv_reader import CSVReader
+from sasi_data.ingestors.mapper import ClassMapper
 from sa_dao.orm_dao import ORM_DAO
 from StringIO import StringIO
 import csv
@@ -53,16 +56,17 @@ class CSV_Ingestor_TestCase(DBTestCase):
             },
         ]
 
-        ingestor = DAO_CSV_Ingestor(
-            dao=dao,
-            csv_file=csv_file, 
-            clazz=TestClass, 
-            mappings=mappings
-        )
-        ingestor.ingest()
-        result = dao.query({
+        Ingestor(
+            reader=CSVReader(csv_file=csv_file),
+            processors=[
+                ClassMapper(clazz=TestClass, mappings=mappings),
+                DAOWriter(dao=dao, commit=False),
+            ]
+        ).ingest()
+        results = dao.query({
             'SELECT': ['__TestClass']
-        })
+        }).all()
+        for r in results: print r.__dict__
 
 if __name__ == '__main__':
     unittest.main()

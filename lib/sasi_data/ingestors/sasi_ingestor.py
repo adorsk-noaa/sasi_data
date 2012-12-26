@@ -22,10 +22,10 @@ class LoggerLogHandler(logging.Handler):
     def emit(self, record):
         self.logger.log(record.levelno, self.format(record))
 
-def empty_float(value):
+def robust_float(value):
     """ Return 0 for 'None' or empty """
     if value is None or value == '':
-        return 0.0
+        return None
     else:
         return float(value)
 
@@ -86,6 +86,8 @@ class SASI_Ingestor(object):
                     {'source': 'id', 'target': 'id'},
                     {'source': 'label', 'target': 'label'},
                     {'source': 'description', 'target': 'description'},
+                    {'source': 'min_depth', 'processor': robust_float},
+                    {'source': 'max_depth', 'processor': robust_float},
                 ]
             },
             {
@@ -243,9 +245,9 @@ class SASI_Ingestor(object):
                     'cell_id', 
                     'time', 
                     'gear_id',
-                    {'source': 'a', 'processor': empty_float},
-                    {'source': 'hours_fished', 'processor': empty_float},
-                    {'source': 'value', 'processor': empty_float},
+                    {'source': 'a', 'processor': robust_float},
+                    {'source': 'hours_fished', 'processor': robust_float},
+                    {'source': 'value', 'processor': robust_float},
                 ]
             }
             self.ingest_csv_section(section)

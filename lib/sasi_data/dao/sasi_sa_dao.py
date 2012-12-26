@@ -102,7 +102,9 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
             'table': Table('gear', self.metadata,
                            Column('id', String, primary_key=True),
                            Column('label', String),
-                           Column('description', Text)
+                           Column('description', Text),
+                           Column('min_depth', Float),
+                           Column('max_depth', Float),
                           )
         }
 

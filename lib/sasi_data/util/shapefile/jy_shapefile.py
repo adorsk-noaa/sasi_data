@@ -53,6 +53,9 @@ class JyShapefileReader(object):
     def setUpCrs(self):
         self.crs = self.schema.getCoordinateReferenceSystem().toWKT()
 
+    def get_crs(self):
+        return self.crs
+
     def setUpShapeType(self):
         return self.geom_attr.getType().name
 

@@ -65,7 +65,7 @@ class SASI_Ingestor_TestCase(DBTestCase):
                     v
                 )
 
-    def xtest_sasi_ingestor_nominal_efforts(self):
+    def test_sasi_ingestor_nominal_efforts(self):
         self.data_dir = self.generate_data_dir(
             time_start=0, 
             time_end=1,
@@ -75,6 +75,10 @@ class SASI_Ingestor_TestCase(DBTestCase):
         dao = SASI_SqlAlchemyDAO(session=self.session)
         sasi_ingestor = SASI_Ingestor(data_dir=self.data_dir, dao=dao)
         sasi_ingestor.ingest()
+
+        efforts = dao.query('__Effort').all()
+        for e in efforts:
+            print e
 
     def generate_data_dir(self, **kwargs):
         data = {}

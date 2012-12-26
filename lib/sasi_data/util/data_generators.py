@@ -164,6 +164,21 @@ def generate_energys(n=2):
         counter += 1
     return energys
 
+def generate_efforts(cells=[], gears=[], t0=0, tf=1, dt=1):
+    efforts = []
+    for cell in cells:
+        cell_area = gis_util.get_shape_area(
+            gis_util.wkb_to_shape(cell.geom.geom_wkb))
+        for t in range(t0, tf, dt):
+            for g in gears:
+                efforts.append(models.Effort(
+                    cell_id=cell.id,
+                    gear_id: g.id,
+                    time=t,
+                    a=cell_area/len(gears),
+                ))
+    return efforts
+
 def generate_results(times=range(3), cells=None, energys=None, features=None,
                      substrates=None, gears=None):
     if not cells:
@@ -435,26 +450,15 @@ def generate_data_dir(data_dir="", data={}, time_start=0, time_end=10,
     }
 
     if effort_model == 'realized':
-        fishing_efforts_data = []
-        num_gears = len(sections['gears']['data'])
-        for cell_record in sections['grid']['records']:
-            cell_geom = gis_util.geojson_to_shape(cell_record['geometry'])
-            cell_area = gis_util.get_shape_area(cell_geom)
-            for t in range(time_start, time_end, time_step):
-                for g in sections['gears']['data']:
-                    fishing_efforts_data.append({
-                        'cell_id': cell_record['id'],
-                        'time': t,
-                        'swept_area': cell_area/num_gears,
-                        'gear_id': g['id']
-                    })
-
+        data.setdefault('fishing_efforts', self.generate_efforts(
+            cells=data['grid'], gears=data['gears'], t0=time_start, tf=time_end,
+            dt=time_step))
         sections['fishing_efforts'] = {
             'id': 'fishing_efforts',
             'type': 'fishing_efforts',
             'model_type': 'realized',
             'fields': ['cell_id', 'time', 'swept_area', 'gear_id'],
-            'data': fishing_efforts_data
+            'data': data['fishing_efforts'],
         }
     elif effort_model == 'nominal':
         sections['fishing_efforts'] = {

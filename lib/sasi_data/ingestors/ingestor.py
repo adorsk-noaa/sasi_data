@@ -31,8 +31,13 @@ class Ingestor(object):
             # passing previous result to next item in the chain.
             data = record
             for processor in self.processors:
-                data = processor.process(data=data, counter=counter,
-                                         total=num_records)
+                # Processor can be processor obj, or function.
+                if hasattr(processor, 'process'):
+                    data = processor.process(data=data, counter=counter,
+                                             total=num_records)
+                else:
+                    data = processor(data=data, counter=counter, 
+                                     total=num_records)
 
             if counter >= num_records:
                 break

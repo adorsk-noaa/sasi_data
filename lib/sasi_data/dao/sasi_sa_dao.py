@@ -4,9 +4,6 @@ from sqlalchemy import (Table, Column, ForeignKey, ForeignKeyConstraint,
                         Integer, String, Text, Float, PickleType, 
                         create_engine, MetaData)
 from sqlalchemy.orm import (mapper, relationship)
-from geoalchemy import (GeometryExtensionColumn, MultiPolygon, 
-                        GeometryColumn, GeometryDDL)
-from geoalchemy import functions as geo_funcs
 import sys
 import logging
 
@@ -18,10 +15,6 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
         self.setUp()
         ORM_DAO.__init__(self, session=self.session, schema=self.schema,
                          **kwargs)
-        self.valid_funcs.append('func.st_intersects')
-        self.valid_funcs.append('geo_funcs.intersects')
-        self.valid_funcs.append('geo_funcs._within_distance')
-        self.expression_locals['geo_funcs'] = geo_funcs
         if create_tables:
             self.create_tables()
 
@@ -54,14 +47,7 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
                            Column('area', Float),
                            Column('z', Float),
                            Column('habitat_composition', PickleType),
-                           GeometryExtensionColumn('geom', MultiPolygon(2)),
                           ),
-            'is_spatial': True,
-        }
-        mappings['Cell']['mapper_kwargs'] = {
-            'properties': {
-                'geom': GeometryColumn(mappings['Cell']['table'].c.geom)
-            }
         }
 
         # Habitat.
@@ -72,12 +58,7 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
                            Column('energy_id', String),
                            Column('z', Float),
                            Column('area', Float),
-                           GeometryExtensionColumn('geom', MultiPolygon(2)),
                           ),
-            'is_spatial': True,
-        }
-        mappings['Habitat']['mapper_kwargs'] = {
-            'properties': {'geom': GeometryColumn(mappings['Habitat']['table'].c.geom)}
         }
 
         # Substrate.
@@ -189,8 +170,6 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
         }
 
         for class_name, mapping in mappings.items():
-            if mapping.get('is_spatial'):
-                GeometryDDL(mapping['table'])
             mapped_class = self.get_local_mapped_class(
                 getattr(sasi_models, class_name),
                 mapping['table'],

@@ -17,7 +17,7 @@ class CSVReader(object):
 
     def get_size(self, limit=None, **kwargs):
         size = 0
-        for r in csv.reader(self.csv_fh):
+        for r in csv.DictReader(self.csv_fh):
             size += 1
             if limit is not None and (size % limit) == 0:
                 break

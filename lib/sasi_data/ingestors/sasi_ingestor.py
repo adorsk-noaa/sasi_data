@@ -268,7 +268,7 @@ class SASI_Ingestor(object):
         self.calculate_cell_compositions()
         for cell in self.cells.values():
             self.dao.save(cell, commit=False)
-            self.dao.commit()
+        self.dao.commit()
 
         # Allow for cells and habs to be garbage collected.
         self.cells = None

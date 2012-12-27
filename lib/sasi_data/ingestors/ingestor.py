@@ -38,6 +38,7 @@ class Ingestor(object):
                 else:
                     data = processor(data=data, counter=counter, 
                                      total=num_records)
+            data = None
 
             if counter >= num_records:
                 break

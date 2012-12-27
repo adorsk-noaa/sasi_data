@@ -252,12 +252,14 @@ def generate_map_layer(layer_id="layer", layer_dir=None):
 
     # Write Mapfile.
     mapfile = os.path.join(layer_dir, "%s.map" % layer_id)
-    open(mapfile, "w").write(get_mapfile(layer_id))
+    with open(mapfile, "w") as f:
+        f.write(get_mapfile(layer_id))
 
     # Write config file.
     config_file= os.path.join(layer_dir, "config.json")
     config = {"mapfile": "%s.map" % layer_id}
-    open(config_file, 'w').write(json.dumps(config))
+    with open(config_file, 'w') as f:
+        f.write(json.dumps(config))
 
     return layer_dir
 
@@ -508,11 +510,12 @@ def setup_section_dirs(data_dir, section):
 
 def generate_csv_section(data_dir, section):
     section_data_dir = setup_section_dirs(data_dir, section)
-    w = csv.writer(
-        open(os.path.join(section_data_dir, "%s.csv" % section['id']), "w"))
-    w.writerow(section['fields'])
-    for row in section['data']:
-        w.writerow([row.get(field, '') for field in section['fields']])
+    with open(
+        os.path.join(section_data_dir, "%s.csv" % section['id']), "w") as f:
+        w = csv.writer(f)
+        w.writerow(section['fields'])
+        for row in section['data']:
+            w.writerow([row.get(field, '') for field in section['fields']])
 
 def generate_shp_section(data_dir, section):
     section_data_dir = setup_section_dirs(data_dir, section)
@@ -529,11 +532,12 @@ def generate_shp_section(data_dir, section):
 def generate_fishing_efforts_section(data_dir, section):
     section_dir = os.path.join(data_dir, section['id'])
     os.makedirs(section_dir)
-    w = csv.writer(open(os.path.join(section_dir, 'model.csv'),'w'))
-    w.writerow(['model_type'])
-    w.writerow([section['model_type']])
-    if section['model_type'] == 'realized':
-        generate_csv_section(data_dir, section)
+    with open(os.path.join(section_dir, 'model.csv'),'w') as f:
+        w = csv.writer(f)
+        w.writerow(['model_type'])
+        w.writerow([section['model_type']])
+        if section['model_type'] == 'realized':
+            generate_csv_section(data_dir, section)
 
 def generate_georefine_sections(data_dir, section):
 

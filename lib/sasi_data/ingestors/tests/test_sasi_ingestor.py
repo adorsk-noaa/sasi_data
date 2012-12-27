@@ -17,26 +17,27 @@ logger.setLevel(logging.INFO)
 
 
 class SASI_Ingestor_TestCase(unittest.TestCase):
-    def setUp(self):
-        if platform.system() == 'Java':
-            db_uri = 'h2+zxjdbc:///mem:test'
-        else:
-            db_uri = 'sqlite://'
-        self.engine = create_engine(db_uri)
-        self.connection = self.engine.connect()
-        self.session = scoped_session(sessionmaker(bind=self.connection))
-
     def tearDown(self):
         if getattr(self, 'data_dir', None):
             shutil.rmtree(self.data_dir)
 
     def test_sasi_ingestor(self):
+
+        if platform.system() == 'Java':
+            db_uri = 'h2+zxjdbc:///mem:'
+        else:
+            db_uri = 'sqlite://'
+        engine = create_engine(db_uri)
+        connection = engine.connect()
+        session = sessionmaker()(bind=connection)
+
         self.data_dir = self.generate_data_dir(
             time_start=0,
             time_end=1,
             time_step=1,
         )
-        dao = SASI_SqlAlchemyDAO(session=self.session)
+
+        dao = SASI_SqlAlchemyDAO(session=session)
         sasi_ingestor = SASI_Ingestor(
             data_dir=self.data_dir, 
             dao=dao,

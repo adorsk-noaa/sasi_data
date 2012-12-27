@@ -336,6 +336,12 @@ def generate_data_dir(data_dir="", data={}, time_start=0, time_end=10,
         energys=data['energys'],
     ))
 
+    # Generate efforts data.
+    data.setdefault('fishing_efforts', generate_efforts(
+        cells=data['grid'], gears=data['gears'], t0=time_start, tf=time_end,
+        dt=time_step))
+
+
     sections = {}
     sections['substrates'] = {
         'id': 'substrates',
@@ -367,10 +373,15 @@ def generate_data_dir(data_dir="", data={}, time_start=0, time_end=10,
         'fields': ['id', 'label', 'description'],
     }
 
-    for section_name in ['substrates', 'energys', 'feature_categories',
-                         'features', 'gears']:
+    sections['fishing_efforts'] = {
+        'id': 'fishing_efforts',
+        'type': 'fishing_efforts',
+        'model_type': 'realized',
+        'fields': ['cell_id', 'time', 'a', 'gear_id', 'value', 'hours_fished'],
+    }
+
+    for section_name, section in sections.items():
         section_data = data[section_name]
-        section = sections[section_name]
         section['data'] = []
         for obj in section_data:
             section['data'].append(dict(
@@ -384,11 +395,15 @@ def generate_data_dir(data_dir="", data={}, time_start=0, time_end=10,
                    't_0', 't_1', 't_2', 't_3', 
                    'w_0', 'w_1', 'w_2', 'w_3', 
                    'projection'],
-        'data': [{'time_start': time_start, 'time_end': time_end, 'time_step':
-                  time_step, 
-                  't_0': 0, 't_1': 1, 't_2': 2, 't_3': 3, 
-                  'w_0': 0, 'w_1': .1, 'w_2': .2, 'w_3':.3, 
-                  'projection': None}]
+        'data': [{
+            'time_start': time_start, 
+            'time_end': time_end, 
+            'time_step': time_step, 
+            't_0': 0, 't_1': 1, 't_2': 2, 't_3': 3, 
+            'w_0': 0, 'w_1': .1, 'w_2': .2, 'w_3':.3, 
+            'effort_model': effort_model,
+            'projection': None
+        }]
     }
 
     sections['va'] = {
@@ -451,27 +466,6 @@ def generate_data_dir(data_dir="", data={}, time_start=0, time_end=10,
         },
         'records': cell_records
     }
-
-    if effort_model == 'realized':
-        data.setdefault('fishing_efforts', generate_efforts(
-            cells=data['grid'], gears=data['gears'], t0=time_start, tf=time_end,
-            dt=time_step))
-
-        fields = ['cell_id', 'time', 'a', 'gear_id', 'value', 'hours_fished']
-        sections['fishing_efforts'] = {
-            'id': 'fishing_efforts',
-            'type': 'fishing_efforts',
-            'model_type': 'realized',
-            'fields': fields,
-            'data': [dict(zip(fields, [getattr(e, f, None) for f in fields]))
-                     for e in data['fishing_efforts']]
-        }
-    elif effort_model == 'nominal':
-        sections['fishing_efforts'] = {
-            'id': 'fishing_efforts',
-            'type': 'fishing_efforts',
-            'model_type': 'nominal',
-        }
 
     sections['georefine'] = {
         'id': 'georefine',

@@ -41,7 +41,7 @@ class SASI_Ingestor(object):
     def ingest(self):
 
         # Define generic CSV ingests.
-        dao_csv_sections = [
+        csv_sections = [
             {
                 'id': 'substrates',
                 'class': self.dao.schema['sources']['Substrate'],
@@ -139,7 +139,7 @@ class SASI_Ingestor(object):
             },
             ]
 
-        for section in dao_csv_sections:
+        for section in csv_sections:
             self.ingest_csv_section(section)
 
         # Convenience shortcuts.

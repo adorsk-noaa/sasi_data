@@ -7,17 +7,19 @@ import shutil
 import logging
 import tempfile
 import platform
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 
 logger = logging.getLogger()
 logger.addHandler(logging.StreamHandler())
-#logger.setLevel(logging.INFO)
+logger.setLevel(logging.INFO)
 
 
 class SASI_Ingestor_TestCase(unittest.TestCase):
     def setUp(self):
         if platform.system() == 'Java':
-            db_uri = 'h2+zxjdbc:///mem:'
+            db_uri = 'h2+zxjdbc:///mem:test'
         else:
             db_uri = 'sqlite://'
         self.engine = create_engine(db_uri)
@@ -69,52 +71,6 @@ class SASI_Ingestor_TestCase(unittest.TestCase):
                     expected_composition[key],
                     v
                 )
-
-    def test_sasi_ingestor_nominal_efforts(self):
-        t0 = 0
-        tf = 1
-        dt = 1
-        self.data_dir = self.generate_data_dir(
-            time_start=t0, 
-            time_end=tf,
-            time_step=dt,
-            effort_model='nominal'
-        )
-        dao = SASI_SqlAlchemyDAO(session=self.session)
-        sasi_ingestor = SASI_Ingestor(data_dir=self.data_dir, dao=dao)
-        sasi_ingestor.ingest()
-
-        cells = dao.query('__Cell').all()
-        gears = dao.query('__Gear').all()
-        num_gears = len(gears)
-        actual_efforts = dao.query('__Effort').all()
-        expected_efforts = []
-        for t in range(t0, tf, dt):
-            for c in cells:
-                for g in gears:
-                    expected_efforts.append(models.Effort(
-                        cell_id=c.id,
-                        time=t,
-                        a=c.area/num_gears,
-                        gear_id=g.id
-                    ))
-
-        def get_keyed_efforts(efforts):
-            keyed_efforts = {}
-            for e in efforts:
-                effort_key = (e.cell_id, e.time, e.gear_id,)
-                efforts_for_key = keyed_efforts.setdefault(effort_key, [])
-                efforts_for_key.append(e)
-            return keyed_efforts
-
-        actual_keyed_efforts = get_keyed_efforts(actual_efforts)
-        expected_keyed_efforts = get_keyed_efforts(expected_efforts)
-        for effort_key, e_efforts in expected_keyed_efforts.items():
-            a_efforts = actual_keyed_efforts[effort_key]
-            actual_total_a = sum([e.a for e in a_efforts])
-            expected_total_a = sum([e.a for e in e_efforts])
-            self.assertTrue(actual_total_a)
-            self.assertEquals(actual_total_a, expected_total_a)
 
     def generate_data_dir(self, **kwargs):
         data = {}

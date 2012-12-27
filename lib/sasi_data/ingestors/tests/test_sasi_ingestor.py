@@ -1,5 +1,4 @@
 import unittest
-from sasi_data.util.sa.tests.db_testcase import DBTestCase
 from sasi_data.ingestors.sasi_ingestor import SASI_Ingestor
 import sasi_data.util.data_generators as dg
 import sasi_data.models as models
@@ -7,6 +6,7 @@ from sasi_data.dao.sasi_sa_dao import SASI_SqlAlchemyDAO
 import shutil
 import logging
 import tempfile
+import platform
 
 
 logger = logging.getLogger()
@@ -14,14 +14,19 @@ logger.addHandler(logging.StreamHandler())
 #logger.setLevel(logging.INFO)
 
 
-class SASI_Ingestor_TestCase(DBTestCase):
+class SASI_Ingestor_TestCase(unittest.TestCase):
     def setUp(self):
-        DBTestCase.setUp(self)
+        if platform.system() == 'Java':
+            db_uri = 'h2+zxjdbc:///mem:'
+        else:
+            db_uri = 'sqlite://'
+        self.engine = create_engine(db_uri)
+        self.connection = self.engine.connect()
+        self.session = scoped_session(sessionmaker(bind=self.connection))
 
     def tearDown(self):
         if getattr(self, 'data_dir', None):
             shutil.rmtree(self.data_dir)
-        DBTestCase.tearDown(self)
 
     def test_sasi_ingestor(self):
         self.data_dir = self.generate_data_dir(

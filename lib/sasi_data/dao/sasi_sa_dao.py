@@ -47,6 +47,7 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
                            Column('area', Float),
                            Column('z', Float),
                            Column('habitat_composition', PickleType),
+                           Column('geom_wkt', String),
                           ),
         }
 

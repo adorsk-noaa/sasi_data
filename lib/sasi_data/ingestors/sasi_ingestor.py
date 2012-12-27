@@ -178,7 +178,9 @@ class SASI_Ingestor(object):
                     clazz=self.dao.schema['sources']['Cell'],
                     mappings=[
                         {'source': 'ID', 'target': 'id'}, 
-                        {'source': '__shape', 'target': 'shape'}
+                        {'source': '__shape', 'target': 'shape'},
+                        {'source': '__shape', 'target': 'geom_wkt',
+                         'processor': gis_util.shape_to_wkt}
                     ]
                 ),
                 self.add_area_mbr,

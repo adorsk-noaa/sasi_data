@@ -183,3 +183,18 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
             schema['sources'][class_name] = mapped_class
 
         return schema
+
+    def bulk_insert_results(self, results, batch_size=1e4, commit=True):
+        result_table = self.get_table_for_class(
+            self.schema['sources']['Result'])
+        result_cols = [c for c in result_table.c.keys()]
+
+        def results_dicts():
+            for r in results:
+                yield dict(zip(
+                    result_cols,
+                    [getattr(r, c, None) for c in result_cols]
+                ))
+
+        self.save_dicts('Result', results_dicts(), batch_size=batch_size,
+                        commit=commit)

@@ -305,10 +305,10 @@ class SASI_Ingestor(object):
                 pct_area = intersection_area/cell.area
                 composition[hab_key] = composition.get(hab_key, 0) + pct_area
                 cell.z += pct_area * hab.z
-                cell.habitat_composition = composition
 
+            cell.habitat_composition = composition
             self.dao.save(cell, commit=False)
-            self.dao.commit()
+        self.dao.commit()
 
     # Define processor for adding area, mbr to geom entities.
     def add_area_mbr(self, data=None, **kwargs):

@@ -103,27 +103,41 @@ class SASI_Ingestor(object):
                 ]
             },
             {
+                'id': 'fishing_efforts',
+                'optional': True,
+                'class': self.dao.schema['sources']['Effort'],
+                'mappings': [
+                    'cell_id', 
+                    'time', 
+                    'gear_id',
+                    {'source': 'a', 'processor': robust_float},
+                    {'source': 'hours_fished', 'processor': robust_float},
+                    {'source': 'value', 'processor': robust_float},
+                ]
+            },
+            {
                 'id': 'model_parameters',
                 'class': self.dao.schema['sources']['ModelParameters'],
                 'mappings': [
-                    {'source': 'time_start', 'target': 'time_start'},
-                    {'source': 'time_end', 'target': 'time_end'},
-                    {'source': 'time_step', 'target': 'time_step'},
-                    {'source': 't_0', 'target': 't_0'},
-                    {'source': 't_1', 'target': 't_1'},
-                    {'source': 't_2', 'target': 't_2'},
-                    {'source': 't_3', 'target': 't_3'},
-                    {'source': 'w_0', 'target': 'w_0'},
-                    {'source': 'w_1', 'target': 'w_1'},
-                    {'source': 'w_2', 'target': 'w_2'},
-                    {'source': 'w_3', 'target': 'w_3'},
+                    'time_start',
+                    'time_end',
+                    'time_step',
+                    't_0',
+                    't_1',
+                    't_2',
+                    't_3',
+                    'w_0',
+                    'w_1',
+                    'w_2',
+                    'w_3',
+                    {'source': 'effort_model', 'default': 'nominal'},
                     {'source': 'projection', 'target': 'projection',
                      # Use the mollweide projection as the default.
                      'default': gis_util.get_default_geographic_crs(),
                     }
                 ],
             },
-        ]
+            ]
 
         for section in dao_csv_sections:
             self.ingest_csv_section(section)
@@ -134,16 +148,24 @@ class SASI_Ingestor(object):
 
         self.ingest_grid()
         self.ingest_habitats()
-        self.ingest_efforts()
 
         self.post_ingest()
 
     def ingest_csv_section(self, section):
-        base_msg = "Ingesting '%s'..." % section['id']
-        self.logger.info(base_msg)
         csv_file = os.path.join(self.data_dir, section['id'], 'data',
                                 "%s.csv" % section['id'])
+        if not os.path.isfile(csv_file):
+            if not section.get('optional'):
+                raise Exception(
+                    ("Error ingesting '%s': "
+                     "File '%s' is required and was not found.") % 
+                    (section['id'], csv_file)
+                )
+            else:
+                return
 
+        base_msg = "Ingesting '%s'..." % section['id']
+        self.logger.info(base_msg)
         section_config = self.config.get('sections', {}).get(
             section['id'], {})
 
@@ -207,7 +229,7 @@ class SASI_Ingestor(object):
         def process_z(z):
             if z is not None:
                 z = -1.0 * float(z)
-            return z
+                return z
 
         Ingestor(
             reader=ShapefileReader(
@@ -232,28 +254,6 @@ class SASI_Ingestor(object):
             limit=habs_config.get('limit'),
         ).ingest()
 
-    def ingest_efforts(self):
-        effort_dir = os.path.join(self.data_dir, 'fishing_efforts')
-        effort_model_file = os.path.join(effort_dir, 'model.csv')
-        model_info_reader = csv.DictReader(open(effort_model_file, 'rb'))
-        model_info = model_info_reader.next()
-        self.effort_model_type = model_info.get('model_type')
-
-        if self.effort_model_type == 'realized':
-            section = {
-                'id': 'fishing_efforts',
-                'class': self.dao.schema['sources']['Effort'],
-                'mappings': [
-                    'cell_id', 
-                    'time', 
-                    'gear_id',
-                    {'source': 'a', 'processor': robust_float},
-                    {'source': 'hours_fished', 'processor': robust_float},
-                    {'source': 'value', 'processor': robust_float},
-                ]
-            }
-            self.ingest_csv_section(section)
-
     def get_section_logger(self, section_id, base_msg):
         logger = logging.getLogger("%s_%s" % (id(self), section_id))
         formatter = logging.Formatter(base_msg + ' %(message)s.')
@@ -268,59 +268,12 @@ class SASI_Ingestor(object):
         self.calculate_cell_compositions()
         for cell in self.cells.values():
             self.dao.save(cell, commit=False)
-        self.dao.commit()
+            self.dao.commit()
 
         # Allow for cells and habs to be garbage collected.
         self.cells = None
         self.habs = None
         self.habs_spatial_hash = None
-
-        # Generate nominal efforts if effort_model is 'nominal'.
-        if self.effort_model_type == 'nominal':
-            self.generate_nominal_efforts()
-
-    def generate_nominal_efforts(self, log_interval=1e3, commit_interval=1e4):
-        base_msg = 'Generating nominal efforts...'
-        self.logger.info(base_msg)
-        logger = self.get_section_logger('nominal_efforts', base_msg)
-
-        EffortClass = self.dao.schema['sources']['Effort']
-
-        tsteps = [tstep for tstep in range(
-            self.model_parameters.time_start,
-            self.model_parameters.time_end,
-            self.model_parameters.time_step,
-        )]
-
-        cells = self.dao.query('__Cell', format_='query_obj')
-        gears = self.dao.query('__Gear', format_='query_obj')
-        num_gears = gears.count()
-        total_efforts = len(tsteps) * cells.count() * gears.count()
-
-        counter = 0
-
-        #for t in tsteps:
-        for t in tsteps:
-            for cell in cells:
-                for gear in gears:
-                    counter += 1
-                    if (counter % log_interval) == 0:
-                        logger.info(" %d of %d (%.1f%%)" % (
-                            counter, total_efforts, 
-                            1.0 * counter/total_efforts * 100))
-
-                    effort = EffortClass(
-                        cell_id=cell.id,
-                        time=t,
-                        a=cell.area/num_gears,
-                        gear_id=gear.id
-                    )
-                    self.dao.save(effort, commit=False)
-
-                    if commit_interval is not None and \
-                       (counter % commit_interval) == 0:
-                        self.dao.commit()
-        self.dao.commit()
 
     def calculate_cell_compositions(self, log_interval=1000):
         base_msg = 'Calculating cell compositions...'
@@ -352,10 +305,10 @@ class SASI_Ingestor(object):
                 pct_area = intersection_area/cell.area
                 composition[hab_key] = composition.get(hab_key, 0) + pct_area
                 cell.z += pct_area * hab.z
-            cell.habitat_composition = composition
+                cell.habitat_composition = composition
 
             self.dao.save(cell, commit=False)
-        self.dao.commit()
+            self.dao.commit()
 
     # Define processor for adding area, mbr to geom entities.
     def add_area_mbr(self, data=None, **kwargs):

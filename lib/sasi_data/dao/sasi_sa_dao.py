@@ -168,6 +168,7 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
                             Column('w_1', Float),
                             Column('w_2', Float),
                             Column('w_3', Float),
+                            Column('effort_model', String),
                             Column('projection', String),
                            ),
         }

@@ -150,6 +150,8 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
                            Column('y', Float),
                            Column('z', Float),
                            Column('znet', Float),
+                           Column('hours_fished', Float),
+                           Column('value', Float),
                           ),
         }
 

@@ -225,7 +225,8 @@ def generate_map_layer(layer_id="layer", layer_dir=None):
     shpfile = os.path.join(layer_dir, "%s.shp" % layer_id)
     writer = shapefile_util.get_shapefile_writer(
         shapefile=shpfile, driver='ESRI Shapefile',
-        crs={'no_defs': True, 'ellps': 'WGS84', 'datum': 'WGS84', 'proj': 'longlat'}, schema={
+        crs='EPSG:4326',
+        schema={
             'geometry': 'MultiPolygon',
             'properties': {
                 'INT_ATTR': 'int',

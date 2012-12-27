@@ -270,11 +270,16 @@ class SASI_Ingestor(object):
             self.dao.save(cell, commit=False)
         self.dao.commit()
 
+        # Allow for cells and habs to be garbage collected.
+        self.cells = None
+        self.habs = None
+        self.habs_spatial_hash = None
+
         # Generate nominal efforts if effort_model is 'nominal'.
         if self.effort_model_type == 'nominal':
             self.generate_nominal_efforts()
 
-    def generate_nominal_efforts(self, log_interval=1000):
+    def generate_nominal_efforts(self, log_interval=1e3, commit_interval=1e4):
         base_msg = 'Generating nominal efforts...'
         self.logger.info(base_msg)
         logger = self.get_section_logger('nominal_efforts', base_msg)
@@ -294,11 +299,11 @@ class SASI_Ingestor(object):
 
         counter = 0
 
+        #for t in tsteps:
         for t in tsteps:
-            for cell in self.dao.query('__Cell'):
-                for gear in self.dao.query('__Gear'):
+            for cell in cells:
+                for gear in gears:
                     counter += 1
-
                     if (counter % log_interval) == 0:
                         logger.info(" %d of %d (%.1f%%)" % (
                             counter, total_efforts, 
@@ -311,7 +316,10 @@ class SASI_Ingestor(object):
                         gear_id=gear.id
                     )
                     self.dao.save(effort, commit=False)
-        logger.info(" Saving efforts...")
+
+                    if commit_interval is not None and \
+                       (counter % commit_interval) == 0:
+                        self.dao.commit()
         self.dao.commit()
 
     def calculate_cell_compositions(self, log_interval=1000):

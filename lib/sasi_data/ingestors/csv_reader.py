@@ -7,7 +7,7 @@ class CSVReader(object):
         self.csv_fh = self.get_csv_fh()
 
     def get_csv_fh(self):
-        if isinstance(self.csv_file, str):
+        if isinstance(self.csv_file, str) or isinstance(self.csv_file, unicode):
             return open(self.csv_file, 'rb')
         else:
             return self.csv_file

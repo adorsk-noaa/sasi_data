@@ -199,7 +199,7 @@ class SASI_Ingestor(object):
                 ClassMapper(
                     clazz=self.dao.schema['sources']['Cell'],
                     mappings=[
-                        {'source': 'ID', 'target': 'id'}, 
+                        {'source': 'ID', 'target': 'id', 'processor': int}, 
                         {'source': '__shape', 'target': 'shape'},
                         {'source': '__shape', 'target': 'geom_wkt',
                          'processor': gis_util.shape_to_wkt}

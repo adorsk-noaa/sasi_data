@@ -42,8 +42,6 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
         mappings['Cell'] = {
             'table': Table('cell', self.metadata,
                            Column('id', Integer, primary_key=True),
-                           Column('type', String),
-                           Column('type_id', Integer),
                            Column('area', Float),
                            Column('z', Float),
                            Column('habitat_composition', PickleType),

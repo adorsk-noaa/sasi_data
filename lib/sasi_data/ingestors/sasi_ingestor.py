@@ -94,12 +94,12 @@ class SASI_Ingestor(object):
                 'id': 'va',
                 'class': self.dao.schema['sources']['VA'],
                 'mappings': [
-                    {'source': 'Gear ID', 'target': 'gear_id'},
-                    {'source': 'Feature ID', 'target': 'feature_id'},
-                    {'source': 'Substrate ID', 'target': 'substrate_id'},
-                    {'source': 'Energy', 'target': 'energy_id'},
-                    {'source': 'S', 'target': 's'},
-                    {'source': 'R', 'target': 'r'},
+                    {'source': 'gear_id', 'target': 'gear_id'},
+                    {'source': 'feature_id', 'target': 'feature_id'},
+                    {'source': 'substrate_id', 'target': 'substrate_id'},
+                    {'source': 'energy_id', 'target': 'energy_id'},
+                    {'source': 's', 'target': 's'},
+                    {'source': 'r', 'target': 'r'},
                 ]
             },
             {

@@ -317,12 +317,12 @@ def generate_data_dir(data_dir="", data={}, time_start=0, time_end=10,
                 for f in data['features']:
                     for g in data['gears']:
                         va_data.append({
-                            'Gear ID': g.id,
-                            'Feature ID': f.id,
-                            'Substrate ID': s.id,
-                            'Energy': e.id,
-                            'S': (i % 3) + 1,
-                            'R': (i % 3) + 1,
+                            'gear_id': g.id,
+                            'feature_id': f.id,
+                            'substrate_id': s.id,
+                            'energy_id': e.id,
+                            's': (i % 3) + 1,
+                            'r': (i % 3) + 1,
                         })
                         i += 1
         data['va'] = va_data
@@ -411,8 +411,8 @@ def generate_data_dir(data_dir="", data={}, time_start=0, time_end=10,
     sections['va'] = {
         'id': 'va',
         'type': 'csv',
-        'fields': ['Gear ID', 'Feature ID', 'Substrate ID', 'Energy', 
-                   'S', 'R'],
+        'fields': ['gear_id', 'feature_id', 'substrate_id', 'energy_id', 
+                   's', 'r'],
         'data': data['va'],
     }
 

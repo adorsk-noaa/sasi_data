@@ -9,3 +9,4 @@ from effort import Effort
 from va import VA
 from result import Result
 from model_parameters import ModelParameters
+from econ_result import EconResult

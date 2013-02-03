@@ -171,6 +171,22 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
                            ),
         }
 
+        # Economic Results.
+        mappings['EconResult'] = {
+            'table': Table('econ_result', self.metadata,
+                           Column('id', Integer, primary_key=True),
+                           Column('t', Integer),
+                           Column('cell_id', Integer),
+                           Column('gear_id', String),
+                           Column('a', Float),
+                           Column('value', Float),
+                           Column('value_net', Float),
+                           Column('hours_fished', Float),
+                           Column('hours_fished_net', Float),
+                          ),
+        }
+
+
         for class_name, mapping in mappings.items():
             mapped_class = self.get_local_mapped_class(
                 getattr(sasi_models, class_name),
@@ -182,17 +198,14 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
 
         return schema
 
-    def bulk_insert_results(self, results, batch_size=1e4, commit=True):
-        result_table = self.get_table_for_class(
-            self.schema['sources']['Result'])
-        result_cols = [c for c in result_table.c.keys()]
+    def bulk_insert_objects(self, source, objects, batch_size=1e4, commit=True):
+        table = self.get_table_for_class(
+            self.schema['sources'][source])
+        cols = [c for c in table.c.keys()]
 
-        def results_dicts():
-            for r in results:
-                yield dict(zip(
-                    result_cols,
-                    [getattr(r, c, None) for c in result_cols]
-                ))
+        def obj_dicts():
+            for o in objects:
+                yield dict(zip(cols, [getattr(o, c, None) for c in cols]))
 
-        self.save_dicts('Result', results_dicts(), batch_size=batch_size,
+        self.save_dicts(source, obj_dicts(), batch_size=batch_size, 
                         commit=commit)

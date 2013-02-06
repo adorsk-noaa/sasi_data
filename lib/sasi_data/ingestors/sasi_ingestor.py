@@ -84,6 +84,8 @@ class SASI_Ingestor(object):
                 'class': self.dao.schema['sources']['Gear'],
                 'mappings': [
                     {'source': 'id', 'target': 'id'},
+                    {'source': 'generic_id', 'target': 'generic_id'},
+                    {'source': 'is_generic', 'target': 'is_generic'},
                     {'source': 'label', 'target': 'label'},
                     {'source': 'description', 'target': 'description'},
                     {'source': 'min_depth', 'processor': robust_float},

@@ -7,6 +7,6 @@ from feature import Feature
 from gear import Gear
 from effort import Effort
 from va import VA
-from result import Result
 from model_parameters import ModelParameters
-from econ_result import EconResult
+from sasi_result import SasiResult
+from fishing_result import FishingResult

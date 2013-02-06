@@ -100,6 +100,8 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
         mappings['Gear'] = {
             'table': Table('gear', self.metadata,
                            Column('id', String, primary_key=True),
+                           Column('generic_id', String),
+                           Column('is_generic', String),
                            Column('label', String),
                            Column('description', Text),
                            Column('min_depth', Float),
@@ -132,25 +134,6 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
                           ),
         }
 
-        # Result.
-        mappings['Result'] = {
-            'table': Table('result', self.metadata,
-                           Column('id', Integer, primary_key=True),
-                           Column('t', Integer),
-                           Column('cell_id', Integer),
-                           Column('gear_id', String),
-                           Column('substrate_id', String),
-                           Column('energy_id', String),
-                           Column('feature_id', String),
-                           Column('feature_category_id', String),
-                           Column('a', Float),
-                           Column('x', Float),
-                           Column('y', Float),
-                           Column('z', Float),
-                           Column('znet', Float),
-                          ),
-        }
-
         # Model Parameters.
         mappings['ModelParameters'] = {
             'table' : Table('model_parameters', self.metadata,
@@ -171,9 +154,28 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
                            ),
         }
 
-        # Economic Results.
-        mappings['EconResult'] = {
-            'table': Table('econ_result', self.metadata,
+        # Result.
+        mappings['SasiResult'] = {
+            'table': Table('sasi_result', self.metadata,
+                           Column('id', Integer, primary_key=True),
+                           Column('t', Integer),
+                           Column('cell_id', Integer),
+                           Column('gear_id', String),
+                           Column('substrate_id', String),
+                           Column('energy_id', String),
+                           Column('feature_id', String),
+                           Column('feature_category_id', String),
+                           Column('a', Float),
+                           Column('x', Float),
+                           Column('y', Float),
+                           Column('z', Float),
+                           Column('znet', Float),
+                          ),
+        }
+
+        # Fishing Results.
+        mappings['FishingResult'] = {
+            'table': Table('fishing_result', self.metadata,
                            Column('id', Integer, primary_key=True),
                            Column('t', Integer),
                            Column('cell_id', Integer),

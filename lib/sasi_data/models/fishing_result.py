@@ -1,12 +1,13 @@
 class FishingResult(object):
 
     def __init__(self, id=None, t=None, cell_id=None, gear_id=None,
-                 a=None, hours_fished=None, hours_fished_net=None, 
-                 value=None, value_net=None):
+                 generic_gear_id=None, a=None, hours_fished=None, 
+                 hours_fished_net=None, value=None, value_net=None):
         self.id = id
         self.t = t
         self.cell_id = cell_id
         self.gear_id = gear_id
+        self.generic_gear_id = generic_gear_id
         self.a = a
         self.hours_fished = hours_fished
         self.hours_fished_net = hours_fished_net

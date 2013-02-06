@@ -43,7 +43,7 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
             'table': Table('cell', self.metadata,
                            Column('id', Integer, primary_key=True),
                            Column('area', Float),
-                           Column('z', Float),
+                           Column('depth', Float),
                            Column('habitat_composition', PickleType),
                            Column('geom_wkt', String),
                           ),
@@ -55,7 +55,7 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
                            Column('id', Integer, primary_key=True),
                            Column('substrate_id', String),
                            Column('energy_id', String),
-                           Column('z', Float),
+                           Column('depth', Float),
                            Column('area', Float),
                           ),
         }

@@ -153,3 +153,7 @@ class PyGISUtil(GISUtil):
         ys = set([c[1] for c in coords])
         mbr = (min(xs), min(ys), max(xs), max(ys))
         return mbr
+
+    @classmethod
+    def simplify_shape(clz, shape, tolerance, preserve_topology=True):
+        return shape.simplify(tolerance, preserve_topology=preserve_topology)

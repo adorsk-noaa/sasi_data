@@ -112,6 +112,7 @@ class SASI_Ingestor(object):
                     'cell_id', 
                     'time', 
                     'gear_id',
+                    # note: we assume a is already in km^2.
                     {'source': 'a', 'processor': robust_float},
                     {'source': 'hours_fished', 'processor': robust_float},
                     {'source': 'value', 'processor': robust_float},
@@ -228,10 +229,10 @@ class SASI_Ingestor(object):
             self.habs_spatial_hash.add_rect(data.mbr, data)
             return data
 
-        def process_z(z):
-            if z is not None:
-                z = -1.0 * float(z)
-                return z
+        def process_neg_depth(neg_depth):
+            if neg_depth is not None:
+                depth = -1.0 * float(neg_depth)
+                return depth
 
         Ingestor(
             reader=ShapefileReader(
@@ -244,7 +245,8 @@ class SASI_Ingestor(object):
                     mappings=[
                         {'source': 'SUBSTRATE', 'target': 'substrate_id'},
                         {'source': 'ENERGY', 'target': 'energy_id'},
-                        {'source': 'Z', 'target': 'z', 'processor': process_z},
+                        {'source': 'Z', 'target': 'depth', 
+                         'processor': process_neg_depth},
                         {'source': '__shape', 'target': 'shape'}, 
                     ]
                 ),
@@ -266,18 +268,14 @@ class SASI_Ingestor(object):
         return logger
 
     def post_ingest(self):
-        # Calculate cell compositions and save cells to DAO.
-        self.calculate_cell_compositions()
-        for cell in self.cells.values():
-            self.dao.save(cell, commit=False)
-        self.dao.commit()
+        self.post_process_cells()
 
         # Allow for cells and habs to be garbage collected.
         self.cells = None
         self.habs = None
         self.habs_spatial_hash = None
 
-    def calculate_cell_compositions(self, log_interval=1000):
+    def post_process_cells(self, log_interval=1000):
         base_msg = 'Calculating cell compositions...'
         self.logger.info(base_msg)
         logger = self.get_section_logger('habitat_areas', base_msg)
@@ -291,7 +289,7 @@ class SASI_Ingestor(object):
                     counter, num_cells, 1.0 * counter/num_cells* 100))
 
             composition = {}
-            cell.z = 0
+            cell.depth = 0
 
             # Get candidate intersecting habitats.
             candidate_habs = self.habs_spatial_hash.items_for_rect(cell.mbr)
@@ -306,9 +304,13 @@ class SASI_Ingestor(object):
                 hab_key = (hab.substrate_id, hab.energy_id,)
                 pct_area = intersection_area/cell.area
                 composition[hab_key] = composition.get(hab_key, 0) + pct_area
-                cell.z += pct_area * hab.z
+                cell.depth += pct_area * hab.depth
 
             cell.habitat_composition = composition
+
+            # Convert cell area to km^2.
+            cell.area = cell.area/(1000.0**2)
+
             self.dao.save(cell, commit=False)
         self.dao.commit()
 

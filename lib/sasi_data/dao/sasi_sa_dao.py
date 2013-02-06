@@ -1,7 +1,7 @@
 import sasi_data.models as sasi_models 
 from sa_dao.orm_dao import ORM_DAO
 from sqlalchemy import (Table, Column, ForeignKey, ForeignKeyConstraint, 
-                        Integer, String, Text, Float, PickleType, 
+                        Integer, String, Boolean, Text, Float, PickleType, 
                         create_engine, MetaData)
 from sqlalchemy.orm import (mapper, relationship)
 import sys
@@ -101,7 +101,7 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
             'table': Table('gear', self.metadata,
                            Column('id', String, primary_key=True),
                            Column('generic_id', String),
-                           Column('is_generic', String),
+                           Column('is_generic', Boolean),
                            Column('label', String),
                            Column('description', Text),
                            Column('min_depth', Float),
@@ -180,6 +180,7 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
                            Column('t', Integer),
                            Column('cell_id', Integer),
                            Column('gear_id', String),
+                           Column('generic_gear_id', String),
                            Column('a', Float),
                            Column('value', Float),
                            Column('value_net', Float),

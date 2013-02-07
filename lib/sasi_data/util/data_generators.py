@@ -586,24 +586,30 @@ def generate_georefine_sections(data_dir, section):
     }
     generate_map_layers_section(data_dir, map_layers_section)
 
-    map_parameters_section = {
-        'id': 'map_parameters',
-        'type': 'csv',
-        'fields': ['max_extent', 'graticule_intervals', 'resolutions'], 
-        'data': [{
-            'max_extent': '[0, 0, 5, 5]',
-            'graticule_intervals': '[2]',
-            'resolutions': '[0.025, 0.0125, 0.00625, 0.003125, 0.0015625, 0.00078125]'
-        }]
+    generate_map_config_section(data_dir)
+
+
+def generate_map_config_section(data_dir, section={}):
+    map_config_dir = os.path.join(data_dir, 'map_config')
+    os.makedirs(map_config_dir)
+
+    section.setdefault('data', {})
+
+    config_defaults = {
+        'defaultMapOptions': {
+            'maxExtent': [0,0,5,5]
+        },
+        'defaultLayerOptions': {},
+        'defaultLayerAttributes': {},
     }
-    generate_csv_section(data_dir, map_parameters_section)
+    for k, default_config in config_defaults.items():
+        with open(os.path.join(map_config_dir, k + '.json'), 'wb') as f:
+            json.dump(section['data'].get(k, default_config), f)
 
 def generate_map_layers_section(data_dir, section):
-    generate_csv_section(data_dir, section)
-    section_data_dir = os.path.join(data_dir, section['id'], "data")
-    map_layers_dir = os.path.join(section_data_dir)
+    layers_dir = os.path.join(data_dir, section['id'])
     for layer in section['data']:
-        layer_dir = os.path.join(map_layers_dir, layer['id'])
+        layer_dir = os.path.join(layers_dir, layer['id'])
         os.mkdir(layer_dir)
         generate_map_layer(layer_id=layer['id'], layer_dir=layer_dir)
 

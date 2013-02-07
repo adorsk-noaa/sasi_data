@@ -29,6 +29,15 @@ def robust_float(value):
     else:
         return float(value)
 
+def parse_bool(v):
+    if type(v) in [str, unicode]:
+        if v.upper() == 'TRUE':
+            return True
+    try:
+        return bool(float(v))
+    except:
+        return False
+
 class SASI_Ingestor(object):
     def __init__(self, data_dir=None, dao=None, logger=logging.getLogger(),
                  config={}, hash_cell_size=.1, **kwargs):
@@ -85,7 +94,8 @@ class SASI_Ingestor(object):
                 'mappings': [
                     {'source': 'id', 'target': 'id'},
                     {'source': 'generic_id', 'target': 'generic_id'},
-                    {'source': 'is_generic', 'target': 'is_generic'},
+                    {'source': 'is_generic', 'target': 'is_generic', 
+                     'processor': parse_bool},
                     {'source': 'label', 'target': 'label'},
                     {'source': 'description', 'target': 'description'},
                     {'source': 'min_depth', 'processor': robust_float},

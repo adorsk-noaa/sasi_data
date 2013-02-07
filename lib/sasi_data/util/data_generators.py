@@ -98,7 +98,7 @@ def generate_habitat_grid(x0=0, xf=3, y0=0, yf=3, dx=1, dy=1,
                 geom_type=geom_type,
                 substrate_id=substrate_id,
                 energy_id=energy_id,
-                z=i * 10.0,
+                depth=i * 10.0,
             )
             grid.append(hab)
             i += 1
@@ -142,16 +142,26 @@ def generate_substrates(n=2):
         counter += 1
     return substrates
 
-def generate_gears(n=2):
+def generate_gears(num_generic=2, num_specific=2):
     gears = []
-    counter = 1
-    for i in range(n):
+    for i in range(num_generic):
+        generic_id = 'GC%s' % i
         gears.append(models.Gear(
-            id="GC%s" % counter,
-            label="Gear %s" % counter,
-            description="Description for gear %s" % counter,
+            id=generic_id,
+            generic_id=generic_id,
+            is_generic=True,
+            label="%s label" % generic_id,
+            description="%s description" % generic_id,
         ))
-        counter += 1
+        for j in range(num_specific):
+            specific_id = 'GC%s%s' % (i,j)
+            gears.append(models.Gear(
+                id=specific_id,
+                generic_id=generic_id,
+                is_generic=False,
+                label="%s label" % specific_id,
+                description="%s description" % specific_id,
+            ))
     return gears
 
 def generate_energys(n=2):
@@ -316,14 +326,15 @@ def generate_data_dir(data_dir="", data={}, time_start=0, time_end=10,
             for e in data['energys']:
                 for f in data['features']:
                     for g in data['gears']:
-                        va_data.append({
-                            'gear_id': g.id,
-                            'feature_id': f.id,
-                            'substrate_id': s.id,
-                            'energy_id': e.id,
-                            's': (i % 3) + 1,
-                            'r': (i % 3) + 1,
-                        })
+                        if g.is_generic:
+                            va_data.append({
+                                'gear_id': g.generic_id,
+                                'feature_id': f.id,
+                                'substrate_id': s.id,
+                                'energy_id': e.id,
+                                's': (i % 3) + 1,
+                                'r': (i % 3) + 1,
+                            })
                         i += 1
         data['va'] = va_data
 
@@ -339,10 +350,10 @@ def generate_data_dir(data_dir="", data={}, time_start=0, time_end=10,
     ))
 
     # Generate efforts data.
+    specific_gears = [g for g in data['gears'] if g.is_generic]
     data.setdefault('fishing_efforts', generate_efforts(
-        cells=data['grid'], gears=data['gears'], t0=time_start, tf=time_end,
+        cells=data['grid'], gears=specific_gears, t0=time_start, tf=time_end,
         dt=time_step))
-
 
     sections = {}
     sections['substrates'] = {
@@ -372,7 +383,7 @@ def generate_data_dir(data_dir="", data={}, time_start=0, time_end=10,
     sections['gears'] = {
         'id': 'gears',
         'type': 'csv',
-        'fields': ['id', 'label', 'description'],
+        'fields': ['id', 'label', 'description', 'is_generic', 'generic_id'],
     }
 
     sections['fishing_efforts'] = {
@@ -427,7 +438,7 @@ def generate_data_dir(data_dir="", data={}, time_start=0, time_end=10,
             'properties': {
                 'SUBSTRATE': getattr(hab, 'substrate_id', ''),
                 'ENERGY': getattr(hab, 'energy_id', ''),
-                'Z': getattr(hab, 'z', 0.0),
+                'Z': -1.0 * getattr(hab, 'depth', 0.0),
             }
         })
         hab_counter += 1

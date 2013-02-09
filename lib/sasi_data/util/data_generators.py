@@ -138,6 +138,7 @@ def generate_substrates(n=2):
             id="S%s" % counter,
             label="Substrate %s" % counter,
             description="Description for substrate %s" % counter,
+            color="#%s" % ''.join(["%02x" % i] * 3)
         ))
         counter += 1
     return substrates
@@ -359,7 +360,7 @@ def generate_data_dir(data_dir="", data={}, time_start=0, time_end=10,
     sections['substrates'] = {
         'id': 'substrates',
         'type': 'csv',
-        'fields': ['id', 'label', 'description'],
+        'fields': ['id', 'label', 'description', 'color'],
     }
 
     sections['energys'] = {
@@ -608,6 +609,7 @@ def generate_map_config_section(data_dir, section={}):
 
 def generate_map_layers_section(data_dir, section):
     layers_dir = os.path.join(data_dir, section['id'])
+    os.makedirs(layers_dir)
     for layer in section['data']:
         layer_dir = os.path.join(layers_dir, layer['id'])
         os.mkdir(layer_dir)

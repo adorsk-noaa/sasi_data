@@ -6,7 +6,8 @@ from org.opengis.referencing.crs import CoordinateReferenceSystem
 from org.geotools.geometry.jts import JTS
 from com.vividsolutions.jts.io import WKBWriter, WKBReader
 from com.vividsolutions.jts.io import WKTWriter, WKTReader
-from com.vividsolutions.jts import simplify
+from com.vividsolutions.jts.simplify import (
+    TopologyPreservingSimplifier, DouglasPeuckerSimplifier)
 import json
 from java.lang import System
 
@@ -114,8 +115,8 @@ class JyGISUtil(GISUtil):
     @classmethod
     def simplify_shape(clz, shape, tolerance, preserve_topology=True):
         if preserve_topology:
-            simplifier = simplify.TopologyPreservingSimplifier
+            simplifier = TopologyPreservingSimplifier
         else:
-            simplifier = simplify.DouglasPeuckerSimplifier
+            simplifier = DouglasPeuckerSimplifier
         return Shape(shape._jgeom, tolerance)
 

@@ -22,6 +22,12 @@ class FionaShapefileReader(object):
     def close(self):
         self.c.close()
 
+    def get_mbr(self):
+        return self.c.bounds
+
+    def get_schema(self):
+        return self.c.schema
+
 class PyShapefileUtil(object):
     @classmethod
     def get_shapefile_reader(clz, shapefile=""):

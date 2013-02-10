@@ -8,7 +8,7 @@ from org.geotools.data import DefaultTransaction
 from org.geotools.data.collection import ListFeatureCollection
 from com.vividsolutions.jts import geom as jts_geom
 from org.geotools.geojson.geom import GeometryJSON
-from java.lang import String, Integer, Double
+from java.lang import String, Long, Double
 from java.util import HashMap
 from java.io import File
 import json
@@ -18,7 +18,7 @@ import logging
 property_type_mappings = {
     'float': Double,
     'str': String,
-    'int': Integer,
+    'int': Long,
 }
 
 geom_type_mappings = {}
@@ -59,6 +59,36 @@ class JyShapefileReader(object):
     def setUpShapeType(self):
         return self.geom_attr.getType().name
 
+    def get_schema(self):
+        # Get geometry type string.
+        geom_type_str = 'Unknown'
+        geom_descriptor = self.schema.getGeometryDescriptor()
+        geom_type = geom_descriptor.getType().getBinding()
+        for type_str, type_obj in geom_type_mappings.items():
+            if type_obj == geom_type:
+                geom_type_str = type_str
+                break
+
+        # Get properties.
+        properties = {}
+        descriptors = self.schema.getAttributeDescriptors()
+        for d in descriptors:
+            if d == geom_descriptor:
+                continue
+            name = d.getLocalName()
+            prop_type_str = 'Unknown'
+            prop_type = d.getType().getBinding()
+            for type_str, type_obj in property_type_mappings.items():
+                if type_obj == prop_type:
+                    prop_type_str = type_str
+                    break
+            properties[name] = prop_type_str
+
+        return {
+            'geometry': geom_type_str,
+            'properties': properties,
+        }
+
     def records(self):
         while (self.feature_iterator.hasNext()):
             feature = self.feature_iterator.next()
@@ -80,6 +110,15 @@ class JyShapefileReader(object):
     def close(self):
         self.feature_iterator.close()
 
+    def get_mbr(self):
+        e = self.fc.getBounds()
+        mbr = (
+            e.getMinX(),
+            e.getMinY(),
+            e.getMaxX(),
+            e.getMaxY(),
+        )
+        return mbr
 
 class JyShapefileUtil(object):
 

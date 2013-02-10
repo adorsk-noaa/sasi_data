@@ -14,6 +14,8 @@ class ShapefileTestCase(unittest.TestCase):
         reader = shapefile_util.get_shapefile_reader(test_shapefile)
         for r in reader.records():
             print r
+        print reader.get_schema()
+        print reader.get_mbr()
 
     def test_write_multipolygon_shapefile(self):
         hndl, shapefile = tempfile.mkstemp(suffix=".shp")
@@ -27,7 +29,7 @@ class ShapefileTestCase(unittest.TestCase):
         }
         records = []
         for i in range(1, 4):
-            coords = [[dg.generate_polygon_coords(x=i, y=i)]]
+            coords = [[dg.generate_polygon_coords(x0=i, y0=i)]]
             records.append({
                 'id': i,
                 'geometry': {

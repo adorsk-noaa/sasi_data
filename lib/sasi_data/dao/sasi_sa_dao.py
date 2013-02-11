@@ -45,7 +45,7 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
                            Column('area', Float),
                            Column('depth', Float),
                            Column('habitat_composition', PickleType),
-                           Column('geom_wkt', String),
+                           Column('geom_wkt', String(convert_unicode=True)),
                           ),
         }
 
@@ -53,8 +53,8 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
         mappings['Habitat'] = {
             'table': Table('habitat', self.metadata,
                            Column('id', Integer, primary_key=True),
-                           Column('substrate_id', String),
-                           Column('energy_id', String),
+                           Column('substrate_id', String(convert_unicode=True)),
+                           Column('energy_id', String(convert_unicode=True)),
                            Column('depth', Float),
                            Column('area', Float),
                           ),
@@ -63,8 +63,8 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
         # Substrate.
         mappings['Substrate'] = {
             'table': Table('substrate', self.metadata,
-                           Column('id', String, primary_key=True),
-                           Column('label', String),
+                           Column('id', String(convert_unicode=True), primary_key=True),
+                           Column('label', String(convert_unicode=True)),
                            Column('description', Text)
                           ),
         }
@@ -72,16 +72,16 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
         # Energy
         mappings['Energy'] = {
             'table' : Table('energy', self.metadata,
-                            Column('id', String, primary_key=True),
-                            Column('label', String),
+                            Column('id', String(convert_unicode=True), primary_key=True),
+                            Column('label', String(convert_unicode=True)),
                            ),
         }
 
         # Feature Category.
         mappings['FeatureCategory'] = {
             'table' : Table('feature_category', self.metadata,
-                            Column('id', String, primary_key=True),
-                            Column('label', String),
+                            Column('id', String(convert_unicode=True), primary_key=True),
+                            Column('label', String(convert_unicode=True)),
                             Column('description', Text)
                            ),
         }
@@ -89,9 +89,9 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
         # Feature.
         mappings['Feature'] = {
             'table' : Table('feature', self.metadata,
-                            Column('id', String, primary_key=True),
-                            Column('label', String),
-                            Column('category', String),
+                            Column('id', String(convert_unicode=True), primary_key=True),
+                            Column('label', String(convert_unicode=True)),
+                            Column('category', String(convert_unicode=True)),
                             Column('description', Text)
                            ),
         }
@@ -99,10 +99,10 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
         # Gear.
         mappings['Gear'] = {
             'table': Table('gear', self.metadata,
-                           Column('id', String, primary_key=True),
-                           Column('generic_id', String),
+                           Column('id', String(convert_unicode=True), primary_key=True),
+                           Column('generic_id', String(convert_unicode=True)),
                            Column('is_generic', Boolean),
-                           Column('label', String),
+                           Column('label', String(convert_unicode=True)),
                            Column('description', Text),
                            Column('min_depth', Float),
                            Column('max_depth', Float),
@@ -112,10 +112,10 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
         # Vulnerability Assessment.
         mappings['VA'] = {
             'table': Table('va', self.metadata,
-                           Column('gear_id', String, primary_key=True),
-                           Column('feature_id', String, primary_key=True),
-                           Column('substrate_id', String, primary_key=True),
-                           Column('energy_id', String, primary_key=True),
+                           Column('gear_id', String(convert_unicode=True), primary_key=True),
+                           Column('feature_id', String(convert_unicode=True), primary_key=True),
+                           Column('substrate_id', String(convert_unicode=True), primary_key=True),
+                           Column('energy_id', String(convert_unicode=True), primary_key=True),
                            Column('s', Integer),
                            Column('r', Integer),
                           ),
@@ -127,7 +127,7 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
                            Column('id', Integer, primary_key=True),
                            Column('time', Integer),
                            Column('cell_id', Integer),
-                           Column('gear_id', String),
+                           Column('gear_id', String(convert_unicode=True)),
                            Column('a', Float),
                            Column('hours_fished', Float),
                            Column('value', Float),
@@ -149,8 +149,8 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
                             Column('w_1', Float),
                             Column('w_2', Float),
                             Column('w_3', Float),
-                            Column('effort_model', String),
-                            Column('projection', String),
+                            Column('effort_model', String(convert_unicode=True)),
+                            Column('projection', String(convert_unicode=True)),
                            ),
         }
 
@@ -160,11 +160,11 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
                            Column('id', Integer, primary_key=True),
                            Column('t', Integer),
                            Column('cell_id', Integer),
-                           Column('gear_id', String),
-                           Column('substrate_id', String),
-                           Column('energy_id', String),
-                           Column('feature_id', String),
-                           Column('feature_category_id', String),
+                           Column('gear_id', String(convert_unicode=True)),
+                           Column('substrate_id', String(convert_unicode=True)),
+                           Column('energy_id', String(convert_unicode=True)),
+                           Column('feature_id', String(convert_unicode=True)),
+                           Column('feature_category_id', String(convert_unicode=True)),
                            Column('a', Float),
                            Column('x', Float),
                            Column('y', Float),
@@ -179,8 +179,8 @@ class SASI_SqlAlchemyDAO(ORM_DAO):
                            Column('id', Integer, primary_key=True),
                            Column('t', Integer),
                            Column('cell_id', Integer),
-                           Column('gear_id', String),
-                           Column('generic_gear_id', String),
+                           Column('gear_id', String(convert_unicode=True)),
+                           Column('generic_gear_id', String(convert_unicode=True)),
                            Column('a', Float),
                            Column('value', Float),
                            Column('value_net', Float),

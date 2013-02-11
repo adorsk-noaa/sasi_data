@@ -24,7 +24,7 @@ class GISUtil(object):
           UNIT["m", 1.0], 
           AXIS["x", EAST], 
           AXIS["y", NORTH]]
-        """
+        """.strip()
 
     get_default_geographic_crs = get_mollweide_crs
 

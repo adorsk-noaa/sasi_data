@@ -11,7 +11,7 @@ import re
 class PyGISUtil(GISUtil):
     @classmethod
     def geojson_to_shape(clz, geojson):
-        if isinstance(geojson, str):
+        if isinstance(geojson, str) or isinstance(geojson, unicode):
             geojson = json.loads(geojson)
         return geometry.shape(geojson)
 
@@ -100,7 +100,7 @@ class PyGISUtil(GISUtil):
             return crs
         elif isinstance(crs, dict):
             return Proj(**crs)
-        elif isinstance(crs, str):
+        elif isinstance(crs, str) or isinstance(crs, unicode):
             # Convert WKT crs string to proj4 string.
             if clz.is_wkt_crs(crs):
                 srs = osr.SpatialReference()
@@ -138,6 +138,7 @@ class PyGISUtil(GISUtil):
 
     @classmethod
     def crs_str_to_proj4_dict(clz, crs_str):
+        crs_str = crs_str.strip()
         if clz.is_wkt_crs(crs_str):
             crs_str = clz.wkt_to_proj4(crs_str)
         elif crs_str.startswith('EPSG:'):

@@ -165,8 +165,7 @@ class SASI_Ingestor(object):
         self.post_ingest()
 
     def ingest_csv_section(self, section):
-        csv_file = os.path.join(self.data_dir, section['id'], 'data',
-                                "%s.csv" % section['id'])
+        csv_file = os.path.join(self.data_dir, "%s.csv" % section['id'])
         if not os.path.isfile(csv_file):
             if not section.get('optional'):
                 raise Exception(
@@ -200,7 +199,7 @@ class SASI_Ingestor(object):
         grid_logger = self.get_section_logger('grid', base_msg)
 
         self.cells = {}
-        grid_file = os.path.join(self.data_dir, 'grid', 'data', "grid.shp")
+        grid_file = os.path.join(self.data_dir, 'grid', "grid.shp")
         grid_config = self.config.get('sections', {}).get('grid', {})
 
         Ingestor(
@@ -232,7 +231,7 @@ class SASI_Ingestor(object):
 
         self.habs = {}
         self.habs_spatial_hash = SpatialHash(cell_size=self.hash_cell_size)
-        habs_file = os.path.join(self.data_dir, 'habitats', 'data', "habitats.shp")
+        habs_file = os.path.join(self.data_dir, 'habitats', "habitats.shp")
         habs_config = self.config.get('sections', {}).get('habitats', {})
 
         def add_to_habs_spatial_hash(data=None, **kwargs):

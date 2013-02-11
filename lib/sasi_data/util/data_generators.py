@@ -389,8 +389,7 @@ def generate_data_dir(data_dir="", data={}, time_start=0, time_end=10,
 
     sections['fishing_efforts'] = {
         'id': 'fishing_efforts',
-        'type': 'fishing_efforts',
-        'model_type': 'realized',
+        'type': 'csv',
         'fields': ['cell_id', 'time', 'a', 'gear_id', 'value', 'hours_fished'],
     }
 
@@ -512,25 +511,17 @@ def generate_data_dir(data_dir="", data={}, time_start=0, time_end=10,
     else:
         return data_dir
 
-def setup_section_dirs(data_dir, section):
-    section_dir = os.path.join(data_dir, section['id'])
-    if not os.path.exists(section_dir):
-        os.mkdir(section_dir)
-    section_data_dir = os.path.join(section_dir, 'data')
-    os.mkdir(section_data_dir)
-    return section_data_dir
-
 def generate_csv_section(data_dir, section):
-    section_data_dir = setup_section_dirs(data_dir, section)
     with open(
-        os.path.join(section_data_dir, "%s.csv" % section['id']), "w") as f:
+        os.path.join(data_dir, "%s.csv" % section['id']), "w") as f:
         w = csv.writer(f)
         w.writerow(section['fields'])
         for row in section['data']:
             w.writerow([row.get(field, '') for field in section['fields']])
 
 def generate_shp_section(data_dir, section):
-    section_data_dir = setup_section_dirs(data_dir, section)
+    section_data_dir = os.path.join(data_dir, section['id'])
+    os.makedirs(section_data_dir)
     shpfile = os.path.join(section_data_dir, "%s.shp" % section['id'])
     w = shapefile_util.get_shapefile_writer(
         shapefile=shpfile, 
@@ -540,16 +531,6 @@ def generate_shp_section(data_dir, section):
     for record in section['records']:
         w.write(record)
     w.close()
-
-def generate_fishing_efforts_section(data_dir, section):
-    section_dir = os.path.join(data_dir, section['id'])
-    os.makedirs(section_dir)
-    with open(os.path.join(section_dir, 'model.csv'),'w') as f:
-        w = csv.writer(f)
-        w.writerow(['model_type'])
-        w.writerow([section['model_type']])
-        if section['model_type'] == 'realized':
-            generate_csv_section(data_dir, section)
 
 def generate_georefine_sections(data_dir, section):
 
@@ -591,21 +572,17 @@ def generate_georefine_sections(data_dir, section):
 
 
 def generate_map_config_section(data_dir, section={}):
-    map_config_dir = os.path.join(data_dir, 'map_config')
-    os.makedirs(map_config_dir)
+    map_config_path = os.path.join(data_dir, 'map_config.json')
 
-    section.setdefault('data', {})
-
-    config_defaults = {
+    section.setdefault('data', {
         'defaultMapOptions': {
             'maxExtent': [0,0,5,5]
         },
         'defaultLayerOptions': {},
         'defaultLayerAttributes': {},
-    }
-    for k, default_config in config_defaults.items():
-        with open(os.path.join(map_config_dir, k + '.json'), 'wb') as f:
-            json.dump(section['data'].get(k, default_config), f)
+    })
+    with open(map_config_path, 'wb') as f:
+        json.dump(section['data'], f)
 
 def generate_map_layers_section(data_dir, section):
     layers_dir = os.path.join(data_dir, section['id'])

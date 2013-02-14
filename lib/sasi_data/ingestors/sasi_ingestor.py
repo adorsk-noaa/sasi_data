@@ -32,7 +32,7 @@ def robust_float(value):
 def robust_int(value):
     """ Return None for 'None' or empty """
     float_value = robust_float(value)
-    if float_value None:
+    if float_value is None:
         return None
     return int(float_value)
 

@@ -23,11 +23,18 @@ class LoggerLogHandler(logging.Handler):
         self.logger.log(record.levelno, self.format(record))
 
 def robust_float(value):
-    """ Return 0 for 'None' or empty """
+    """ Return None for 'None' or empty """
     if value is None or value == '':
         return None
     else:
         return float(value)
+
+def robust_int(value):
+    """ Return None for 'None' or empty """
+    if value is None or value == '':
+        return None
+    else:
+        return int(value)
 
 def parse_bool(v):
     if type(v) in [str, unicode]:
@@ -121,7 +128,8 @@ class SASI_Ingestor(object):
                 'class': self.dao.schema['sources']['Effort'],
                 'mappings': [
                     'cell_id', 
-                    'time', 
+                    {'source': 'time', 'target': 'time', 
+                     'processor': robust_int},
                     'gear_id',
                     # note: we assume a is already in km^2.
                     {'source': 'a', 'processor': robust_float},

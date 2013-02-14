@@ -40,13 +40,13 @@ def parse_bool(v):
 
 class SASI_Ingestor(object):
     def __init__(self, data_dir=None, dao=None, logger=logging.getLogger(),
-                 config={}, hash_cell_size=.1, commit_interval=1e4, **kwargs):
+                 config={}, hash_cell_size=.1, **kwargs):
         self.data_dir = data_dir
         self.dao = dao
         self.logger = logger
         self.hash_cell_size = hash_cell_size
         self.config = config
-        self.commit_interval = commit_interval
+        self.commit_interval = config.get('commit_interval', 1e4)
 
     def ingest(self):
 

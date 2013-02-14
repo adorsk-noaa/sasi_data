@@ -31,10 +31,10 @@ def robust_float(value):
 
 def robust_int(value):
     """ Return None for 'None' or empty """
-    if value is None or value == '':
+    float_value = robust_float(value)
+    if float_value None:
         return None
-    else:
-        return int(value)
+    return int(float_value)
 
 def parse_bool(v):
     if type(v) in [str, unicode]:
